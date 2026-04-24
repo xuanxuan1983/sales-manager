@@ -1,0 +1,23 @@
+:root {
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --primary: #1d1d1f;
+  --accent: #0071e3;
+  --danger: #ff3b30;
+  --success: #34c759;
+  --text-secondary: #86868b;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { 
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+  background: var(--bg); 
+  color: var(--primary);
+  line-height: 1.5;
+}
+
+#app {
+  min-height: 100vh;
+}
