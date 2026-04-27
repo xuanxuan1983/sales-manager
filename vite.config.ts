@@ -9,5 +9,24 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks
+          'vendor-vue': ['vue', 'vue-router', 'pinia'],
+          'vendor-ui': ['element-plus', '@element-plus/icons-vue'],
+          'vendor-table': ['vxe-table', 'xe-utils'],
+          'vendor-charts': ['echarts', 'vue-echarts'],
+          'vendor-excel': ['xlsx', 'file-saver'],
+          // View chunks (large views)
+          'view-indicator': ['./src/views/IndicatorCenter.vue'],
+          'view-target': ['./src/views/TargetManagement.vue'],
+          'view-import': ['./src/views/DataImport.vue']
+        }
+      }
+    }
   }
 })
