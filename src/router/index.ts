@@ -83,6 +83,24 @@ const router = createRouter({
             name: 'headcount',
             component: () => import('@/views/HeadcountPlanning.vue'),
             meta: { title: '人员规划', icon: 'user' }
+        },
+        {
+            path: '/udi/inbound',
+            name: 'udi-inbound',
+            component: () => import('@/views/UDIInbound.vue'),
+            meta: { title: 'UDI 入库', icon: 'scan' }
+        },
+        {
+            path: '/udi/trace',
+            name: 'udi-trace',
+            component: () => import('@/views/UDITrace.vue'),
+            meta: { title: 'UDI 追溯', icon: 'search' }
+        },
+        {
+            path: '/udi/adverse',
+            name: 'udi-adverse',
+            component: () => import('@/views/AdverseEventReport.vue'),
+            meta: { title: '不良事件', icon: 'alert' }
         }
     ]
 })
