@@ -60,9 +60,21 @@ export interface Distributor {
     balance: number  // 应收余额
 }
 
+// ============ UDI 码管理（三类医疗器械强制要求） ============
+export interface UDIInfo {
+    di: string           // 器械标识（企业+产品型号，固定）
+    pi: string           // 生产标识（批号+序列号+生产日期+效期）
+    gs1Code: string      // GS1编码
+    dataMatrix: string   // DataMatrix二维码内容
+    productionDate: string  // 生产日期
+    expiryDate: string     // 有效期至
+    batchNo: string        // 批号
+    serialNo: string       // 序列号（每支唯一）
+}
+
 // ============ 产品管理 ============
 export type ProductUnit = 'unit' | 'box'  // 支/盒
-export type ProductCategory = 'hyaluronic' | 'botox' | 'device' | 'consumable' | 'other'
+export type ProductCategory = 'collagen' | 'hyaluronic' | 'botox' | 'device' | 'consumable' | 'other'
 
 export interface Product {
     id: string
@@ -72,6 +84,25 @@ export interface Product {
     unitsPerBox: number  // 每盒多少支
     assessmentPrice: number  // 考核价
     retailPrice?: number  // 零售价
+    // UDI相关
+    udiDi?: string        // UDI-DI 码（产品注册后分配）
+    isUDIRequired: boolean // 是否要求UDI（三类器械=true）
+    storageTemp?: string  // 储存温度（如：2-8°C）
+    shelfLifeMonths: number // 保质期（月）
+}
+
+// ============ 产品批次（UDI追溯） ============
+export interface ProductBatch {
+    id: string
+    productId: string
+    batchNo: string       // 批号
+    productionDate: string
+    expiryDate: string
+    quantity: number      // 入库数量
+    remaining: number     // 剩余数量
+    udiList: UDIInfo[]    // 每支的UDI信息
+    storageTemp: string   // 储存温度记录
+    status: 'in_stock' | 'shipping' | 'sold_out' | 'expired' | 'recalled'
 }
 
 // ============ 订单管理 ============
@@ -83,6 +114,9 @@ export interface OrderItem {
     quantity: number  // 数量（支或盒）
     unitPrice: number
     totalAmount: number
+    // UDI追溯（三类器械必填）
+    udiList?: string[]   // 出库时扫描的UDI码列表（每支一个）
+    batchNo?: string     // 批号
 }
 
 export interface Order {
@@ -136,8 +170,106 @@ export interface Collection {
     lastCollectionDate?: string
 }
 
+// ============ 不良事件上报 ============
+export type AdverseEventType = 'infection' | 'allergy' | 'nodule' | 'vascular' | 'asymmetry' | 'other'
+export type AdverseEventSeverity = 'mild' | 'moderate' | 'severe' | 'life_threatening'
+export type AdverseEventStatus = 'reported' | 'investigating' | 'confirmed' | 'closed' | 'reported_to_nmpa'
+
+export interface AdverseEvent {
+    id: string
+    reportNo: string           // 上报编号: AE-YYYYMMDD-NNN
+    reportDate: string         // 上报日期
+    reporter: string           // 上报人
+    reporterContact: string    // 联系方式
+
+    // 患者信息
+    patientAge?: number
+    patientGender?: 'male' | 'female'
+    patientId?: string         // 脱敏处理
+
+    // 产品信息（通过UDI精准定位）
+    productId: string
+    productName: string
+    udiDi: string
+    udiPi: string
+    batchNo: string
+    serialNo: string
+
+    // 事件信息
+    eventType: AdverseEventType
+    eventDate: string          // 事件发生日期
+    eventDescription: string   // 事件描述
+    treatmentDescription?: string // 处理措施
+
+    // 严重程度
+    severity: AdverseEventSeverity
+    outcome?: 'recovered' | 'recovering' | 'not_recovered' | 'death' | 'unknown'
+
+    // 机构信息
+    institutionName: string
+    institutionType: 'clinic' | 'hospital' | 'beauty_salon'
+    operatorName?: string      // 操作医师
+
+    // 处理状态
+    status: AdverseEventStatus
+    nmpaReportNo?: string      // 药监局上报编号
+    closedDate?: string
+    remark?: string
+
+    // 附件
+    attachments?: string[]     // 图片/文档URL
+}
+
+export interface AdverseEventFilter {
+    keyword: string
+    eventType: AdverseEventType | ''
+    severity: AdverseEventSeverity | ''
+    status: AdverseEventStatus | ''
+    dateRange: [string, string] | null
+    batchNo: string
+}
+
+// ============ UDI 追溯记录 ============
+export type TraceOperation = 'inbound' | 'outbound' | 'return' | 'recall' | 'destroy'
+
+export interface TraceRecord {
+    id: string
+    udiDi: string           // 产品标识
+    udiPi: string           // 生产标识（批号+序列号）
+    batchNo: string         // 批号
+    serialNo: string        // 序列号
+    productId: string
+    productName: string
+    from: string            // 出库方（仓库/供应商）
+    to: string              // 接收方（机构/客户）
+    toType: 'clinic' | 'hospital' | 'distributor' | 'warehouse'
+    operation: TraceOperation
+    quantity: number
+    timestamp: string       // ISO 日期
+    operator: string        // 操作人
+    orderId?: string        // 关联订单
+    remark?: string
+}
+
+// ============ 效期预警 ============
+export type ExpiryAlertLevel = 'critical' | 'warning' | 'notice'  // 已过期/3个月内/6个月内
+
+export interface ExpiryAlert {
+    id: string
+    batchId: string
+    batchNo: string
+    productId: string
+    productName: string
+    expiryDate: string
+    remainingQuantity: number
+    daysUntilExpiry: number
+    alertLevel: ExpiryAlertLevel
+    createdAt: string
+    isAcknowledged: boolean
+}
+
 // ============ 预警 ============
-export type AlertType = 'target' | 'churn' | 'overdue'
+export type AlertType = 'target' | 'churn' | 'overdue' | 'expiry' | 'udi_recall'
 export type AlertSeverity = 'high' | 'medium' | 'low'
 
 export interface Alert {
@@ -301,3 +433,85 @@ export interface CommissionRecord {
     status: 'pending' | 'approved' | 'paid'
 }
 
+// ============ 筛选状态 ============
+export interface MedicalFilterState {
+    keyword: string
+    status: OrderStatus | ''
+    regionId: string
+    cityId: string
+    dateRange: [string, string] | null
+    channel: Channel | ''
+    minAmount: number | null
+    maxAmount: number | null
+}
+
+// ============ KPI 聚合 ============
+export interface MedicalSalesKPI {
+    totalOrders: number
+    totalAmount: number
+    totalQuantity: number
+    averageOrderValue: number
+    completionRate: number
+    directAmount: number
+    distributorAmount: number
+    directRatio: number
+    topRegion: string
+    topRegionAmount: number
+}
+
+// ============ 导出/导入相关 ============
+export type ImportEntityType = 'orders' | 'clients' | 'products' | 'salespeople' | 'distributors' | 'indicators' | 'headcount' | 'cityStats'
+
+export interface ImportResult<T> {
+    data: T[]
+    summary: {
+        total: number
+        success: number
+        failed: number
+    }
+    errors: ImportError[]
+}
+
+export interface ImportError {
+    row: number
+    field: string
+    value: unknown
+    message: string
+}
+
+// ============ 兼容旧版 Sales Store ============
+export interface SalesOrder {
+    id: number
+    orderNo: string
+    customerName: string
+    productName: string
+    quantity: number
+    unitPrice: number
+    totalAmount: number
+    salesperson: string
+    orderDate: string
+    status: OrderStatus
+    remark?: string
+}
+
+export interface SalesStats {
+    totalOrders: number
+    totalAmount: number
+    totalQuantity: number
+    averageOrderValue: number
+}
+
+// ============ 分页参数 ============
+export interface PaginationParams {
+    page: number
+    pageSize: number
+    sortField?: string
+    sortOrder?: 'asc' | 'desc'
+}
+
+export interface PaginatedResult<T> {
+    list: T[]
+    total: number
+    page: number
+    pageSize: number
+}
