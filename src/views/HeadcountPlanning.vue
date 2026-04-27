@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { HeadcountPlan, SalespersonEnhanced } from '@/types/sales'
+import type { SalespersonEnhanced } from '@/types/sales'
 
 import { useMedicalSalesStore } from '@/stores/medicalSales'
 

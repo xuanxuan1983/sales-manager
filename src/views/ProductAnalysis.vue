@@ -5,6 +5,7 @@ import { useMedicalSalesStore } from '@/stores/medicalSales'
 const store = useMedicalSalesStore()
 
 const categoryLabels: Record<string, string> = {
+  collagen: '胶原蛋白系列',
   hyaluronic: '玻尿酸系列',
   botox: '肉毒素系列',
   device: '光电/射频设备',
@@ -73,7 +74,8 @@ const categoryStats = computed(() => {
             <th>#</th>
             <th>产品名称</th>
             <th>品类</th>
-            <th>单位</th>
+            <th>UDI-DI</th>
+            <th>储存条件</th>
             <th>考核价</th>
             <th>销量</th>
             <th>销售额</th>
@@ -82,9 +84,19 @@ const categoryStats = computed(() => {
         <tbody>
           <tr v-for="(p, index) in productStats" :key="p.id">
             <td>{{ index + 1 }}</td>
-            <td class="name-cell">{{ p.name }}</td>
+            <td class="name-cell">
+              {{ p.name }}
+              <span v-if="p.isUDIRequired" class="udi-badge">UDI</span>
+            </td>
             <td>{{ p.categoryLabel }}</td>
-            <td>{{ p.unit === 'unit' ? '支' : '盒' }}</td>
+            <td>
+              <code v-if="p.udiDi" class="udi-code">{{ p.udiDi }}</code>
+              <span v-else class="text-muted">待注册</span>
+            </td>
+            <td>
+              <span class="temp-badge" v-if="p.storageTemp">{{ p.storageTemp }}</span>
+              <span v-else>-</span>
+            </td>
             <td>¥{{ p.assessmentPrice }}</td>
             <td>{{ p.totalQuantity }}</td>
             <td class="amount">¥{{ (p.totalAmount / 10000).toFixed(2) }}万</td>
@@ -163,6 +175,43 @@ const categoryStats = computed(() => {
 }
 .name-cell { font-weight: 500; }
 .amount { font-weight: 600; }
+
+.udi-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #0071E3;
+  color: white;
+  font-size: 11px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.udi-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: #F5F5F7;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #1D1D1F;
+}
+
+.temp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #E5F0FF;
+  color: #0040DD;
+  font-size: 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.text-muted {
+  color: #86868B;
+  font-size: 13px;
+}
 
 @media (max-width: 1024px) {
   .product-analysis { grid-template-columns: 1fr; }

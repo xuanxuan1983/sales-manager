@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useMedicalSalesStore } from '@/stores/medicalSales'
-import { ElMessage } from 'element-plus'
-import type { Client } from '@/types/sales'
+
 
 const store = useMedicalSalesStore()
 const activeTab = ref('clients')
@@ -22,7 +21,8 @@ const filteredClients = computed(() => {
     const totalAmount = orders.reduce((sum, o) => sum + o.totalAmount, 0)
     const products = [...new Set(orders.flatMap(o => o.items.map(i => {
       const p = store.products.find(prod => prod.id === i.productId)
-      return { hyaluronic: '玻尿酸', botox: '肉毒素', device: '设备' }[p?.category || ''] || ''
+      const categoryMap: Record<string, string> = { hyaluronic: '玻尿酸', botox: '肉毒素', device: '设备', consumable: '耗材', other: '其他' }
+      return categoryMap[p?.category || ''] || ''
     })).filter(Boolean))].join('/')
     return {
       ...client,
