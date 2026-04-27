@@ -23,9 +23,9 @@ onUnmounted(() => {
 // 底部导航只显示核心功能（微信习惯：5个以内）
 const bottomNavItems = [
   { path: '/', name: '仪表盘', icon: '📊' },
+  { path: '/scan-verify', name: '验真', icon: '🔐' },
   { path: '/udi/inbound', name: '入库', icon: '📦' },
   { path: '/udi/trace', name: '追溯', icon: '🔍' },
-  { path: '/udi/adverse', name: '事件', icon: '⚠️' },
   { path: '/indicators', name: '指标', icon: '📈' }
 ]
 
@@ -43,6 +43,8 @@ const navItems = [
   { path: '/import', name: '数据导入', icon: 'upload' },
   { path: '/distributors', name: '代理商分级', icon: 'medal' },
   { path: '/headcount', name: '人员规划', icon: 'users' },
+  { path: '/scan-verify', name: '扫码验真', icon: 'shield-check' },
+  { path: '/udi/inbound', name: 'UDI 入库', icon: 'package' },
   { path: '/udi/trace', name: 'UDI 追溯', icon: 'scan' },
   { path: '/udi/adverse', name: '不良事件', icon: 'alert-triangle' }
 ]

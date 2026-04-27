@@ -101,6 +101,12 @@ const router = createRouter({
             name: 'udi-adverse',
             component: () => import('@/views/AdverseEventReport.vue'),
             meta: { title: '不良事件', icon: 'alert' }
+        },
+        {
+            path: '/scan-verify',
+            name: 'scan-verify',
+            component: () => import('@/views/ScanVerify.vue'),
+            meta: { title: '扫码验真', icon: 'scan' }
         }
     ]
 })
