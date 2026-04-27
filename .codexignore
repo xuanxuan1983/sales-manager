@@ -1,0 +1,7 @@
+# Codex ignore file
+node_modules/
+dist/
+.git/
+*.zip
+*.tar.gz
+.DS_Store
