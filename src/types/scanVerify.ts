@@ -138,4 +138,12 @@ export interface ScanResultDisplay {
     icon: string
   }
   checks: VerifyCheck[]
+  /** 动态防伪水印（每次查询生成唯一） */
+  watermark?: {
+    token: string      // 防伪令牌（如：TXF-20260427-A7B3）
+    timestamp: string  // 查询时间戳
+    qrData: string     // 防伪二维码数据
+    gradient: string   // 渐变色标识
+    hash: string       // 校验哈希
+  }
 }

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { parseGS1, mockScan } from '@/utils/gs1Parser'
+import { generateWatermark } from '@/utils/watermark'
 import type {
   ProductVerifyRecord,
   ScanVerifyStatus,
@@ -301,6 +302,14 @@ export const useScanVerifyStore = defineStore('scanVerify', () => {
       // 7. 构建结果
       const isAuthentic = status === 'authentic' || status === 'authentic_repeat'
 
+      // 生成动态防伪水印
+      const watermark = isAuthentic ? generateWatermark({
+        productId: product.id,
+        batchNo: parsed.batchNo || '',
+        serialNo: parsed.serialNo || '',
+        queryCount
+      }) : undefined
+
       lastResult.value = {
         isAuthentic,
         queryCount,
@@ -315,7 +324,8 @@ export const useScanVerifyStore = defineStore('scanVerify', () => {
           type: isAuthentic ? 'success' : 'danger',
           icon: isAuthentic ? '✓' : '⚠️'
         },
-        checks
+        checks,
+        watermark
       }
 
       saveRecord(rawCode, parsed, status, statusMsg, checks, operator, isFirstQuery, queryCount)

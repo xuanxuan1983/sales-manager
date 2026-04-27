@@ -177,6 +177,38 @@ const quickActions = [
           </div>
         </div>
 
+        <!-- 动态防伪水印区 -->
+        <div class="watermark-section" v-if="result.isAuthentic && result.watermark">
+          <div class="watermark-card" :style="{ background: result.watermark.gradient }">
+            <div class="watermark-content">
+              <div class="seal-area">
+                <div class="seal-circle">
+                  <span class="seal-text">天新福正品</span>
+                  <span class="seal-token">{{ result.watermark.token }}</span>
+                  <span class="seal-sub">官方验证</span>
+                </div>
+              </div>
+              <div class="watermark-info">
+                <div class="wm-row">
+                  <span class="wm-label">防伪令牌</span>
+                  <span class="wm-value mono">{{ result.watermark.token }}</span>
+                </div>
+                <div class="wm-row">
+                  <span class="wm-label">验证时间</span>
+                  <span class="wm-value">{{ new Date(result.watermark.timestamp).toLocaleString('zh-CN') }}</span>
+                </div>
+                <div class="wm-row">
+                  <span class="wm-label">校验哈希</span>
+                  <span class="wm-value mono hash">{{ result.watermark.hash }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="watermark-hint">
+              🔒 此防伪标识为动态生成，截图无效。请通过官方渠道重新扫码验证。
+            </div>
+          </div>
+        </div>
+
         <!-- 产品信息卡片 -->
         <div class="product-info" v-if="result.isAuthentic">
           <div class="info-row">
@@ -730,6 +762,133 @@ const quickActions = [
   color: #DC2626;
   font-weight: 600;
   text-decoration: none;
+}
+
+/* 动态防伪水印 */
+.watermark-section {
+  margin-bottom: 20px;
+}
+
+.watermark-card {
+  border-radius: 16px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.watermark-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(255,255,255,0.03) 20px,
+    rgba(255,255,255,0.03) 40px
+  );
+  animation: watermarkShimmer 3s linear infinite;
+}
+
+@keyframes watermarkShimmer {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+.watermark-content {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.seal-area {
+  flex-shrink: 0;
+}
+
+.seal-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px dashed rgba(255,255,255,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(4px);
+}
+
+.seal-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+.seal-token {
+  font-size: 9px;
+  font-family: monospace;
+  color: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.seal-sub {
+  font-size: 9px;
+  color: rgba(255,255,255,0.7);
+}
+
+.watermark-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.wm-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+}
+
+.wm-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  text-align: right;
+}
+
+.wm-value.hash {
+  font-size: 10px;
+  font-family: monospace;
+  background: rgba(0,0,0,0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.watermark-hint {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 /* 结果操作 */
