@@ -142,7 +142,7 @@ export interface ScanResultDisplay {
   watermark?: {
     token: string      // 防伪令牌（如：TXF-20260427-A7B3）
     timestamp: string  // 查询时间戳
-    qrData: string     // 防伪二维码数据
+    qrData?: string    // 防伪二维码数据
     gradient: string   // 渐变色标识
     hash: string       // 校验哈希
   }

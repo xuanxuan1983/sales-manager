@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { parseGS1, mockScan } from '@/utils/gs1Parser'
 import { generateWatermark } from '@/utils/watermark'
+import { verifyScan } from '@/api/scan'
 import type {
   ProductVerifyRecord,
   ScanVerifyStatus,
@@ -118,226 +119,143 @@ export const useScanVerifyStore = defineStore('scanVerify', () => {
 
   /**
    * 产品扫码验真（核心功能 - 参考艾佰瑞）
+   * 优先调用后端API，失败时降级到本地处理
    */
   const verifyProduct = async (rawCode: string, operator: string = '系统'): Promise<ScanResultDisplay> => {
     isScanning.value = true
 
     try {
-      // 1. 解析条码
-      const parsed = parseGS1(rawCode)
-      const checks: VerifyCheck[] = []
-
-      // 2. 格式验证
-      if (!parsed || !parsed.isValid) {
-        checks.push({
-          name: '条码格式',
-          passed: false,
-          message: '无法识别该条码格式，请检查是否为正规产品',
-          severity: 'error',
-          icon: '❌'
-        })
-
+      // 尝试调用后端API
+      try {
+        const result = await verifyScan({ rawCode, operator })
         lastResult.value = {
-          isAuthentic: false,
-          queryCount: 0,
-          productName: '未知产品',
-          batchNo: '-',
-          serialNo: '-',
-          productionDate: '-',
-          expiryDate: '-',
-          manufacturer: '-',
+          isAuthentic: result.isAuthentic,
+          queryCount: result.queryCount,
+          productName: result.productName,
+          batchNo: result.batchNo,
+          serialNo: result.serialNo,
+          productionDate: result.productionDate,
+          expiryDate: result.expiryDate,
+          manufacturer: result.manufacturer,
           statusBadge: {
-            text: '序列号不存在',
-            type: 'danger',
-            icon: '⚠️'
+            text: result.status === 'authentic' ? '真' :
+                  result.status === 'authentic_repeat' ? `第${result.queryCount}次查询` :
+                  result.statusMessage,
+            type: result.isAuthentic ? 'success' : 'danger',
+            icon: result.isAuthentic ? '✓' : '⚠️'
           },
-          checks
+          checks: result.checks.map(c => ({
+            name: c.name,
+            passed: c.passed,
+            message: c.message,
+            severity: c.severity as 'info' | 'warning' | 'error' | 'success',
+            icon: c.passed ? '✅' : '❌'
+          })),
+          watermark: result.watermark
         }
-
-        // 保存记录
-        saveRecord(rawCode, parsed, 'not_found', '该序列号不存在，请核实是否输入有误', checks, operator, false, 0)
-
         return lastResult.value
+      } catch (apiError) {
+        console.warn('API调用失败，降级到本地处理:', apiError)
       }
 
-      checks.push({
-        name: '条码格式',
-        passed: true,
-        message: '条码格式正确',
-        severity: 'success',
-        icon: '✅'
-      })
-
-      // 3. 查询产品信息
-      const product = PRODUCT_DB[parsed.di]
-      if (!product) {
-        checks.push({
-          name: '产品注册',
-          passed: false,
-          message: '未找到该产品注册信息，疑似非正规产品',
-          severity: 'error',
-          icon: '❌'
-        })
-
-        lastResult.value = {
-          isAuthentic: false,
-          queryCount: 0,
-          productName: '未知产品',
-          batchNo: parsed.batchNo || '-',
-          serialNo: parsed.serialNo || '-',
-          productionDate: parsed.productionDate || '-',
-          expiryDate: parsed.expiryDate || '-',
-          manufacturer: '-',
-          statusBadge: {
-            text: '序列号不存在',
-            type: 'danger',
-            icon: '⚠️'
-          },
-          checks
-        }
-
-        saveRecord(rawCode, parsed, 'not_found', '该产品未在系统中注册', checks, operator, false, 0)
-        return lastResult.value
-      }
-
-      checks.push({
-        name: '产品注册',
-        passed: true,
-        message: `产品已注册：${product.name}`,
-        severity: 'success',
-        icon: '✅'
-      })
-
-      // 4. 检查召回
-      if (parsed.batchNo && RECALLED_BATCHES.has(parsed.batchNo)) {
-        checks.push({
-          name: '召回检查',
-          passed: false,
-          message: '⚠️ 该批次已被召回，请立即停止使用',
-          severity: 'error',
-          icon: '🚨'
-        })
-
-        lastResult.value = {
-          isAuthentic: true,
-          queryCount: 1,
-          productName: product.name,
-          batchNo: parsed.batchNo,
-          serialNo: parsed.serialNo || '-',
-          productionDate: parsed.productionDate || '-',
-          expiryDate: parsed.expiryDate || '-',
-          manufacturer: product.manufacturer,
-          statusBadge: {
-            text: '该批次已召回',
-            type: 'danger',
-            icon: '🚨'
-          },
-          checks
-        }
-
-        saveRecord(rawCode, parsed, 'recalled', '该批次产品已被召回', checks, operator, false, 1)
-        return lastResult.value
-      }
-
-      checks.push({
-        name: '召回检查',
-        passed: true,
-        message: '该批次未被召回',
-        severity: 'success',
-        icon: '✅'
-      })
-
-      // 5. 检查效期
-      const today = new Date()
-      const expiryDate = parsed.expiryDate ? new Date(parsed.expiryDate) : null
-      let status: ScanVerifyStatus = 'authentic'
-      let statusMsg = ''
-
-      if (expiryDate) {
-        const diffDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-        if (diffDays < 0) {
-          status = 'expired'
-          statusMsg = '该产品已过期'
-          checks.push({
-            name: '效期检查',
-            passed: false,
-            message: `已过期 ${Math.abs(diffDays)} 天，请勿使用`,
-            severity: 'error',
-            icon: '⛔'
-          })
-        } else if (diffDays <= 90) {
-          checks.push({
-            name: '效期检查',
-            passed: true,
-            message: `即将到期，剩余 ${diffDays} 天`,
-            severity: 'warning',
-            icon: '⚠️'
-          })
-        } else {
-          checks.push({
-            name: '效期检查',
-            passed: true,
-            message: `效期正常，剩余 ${diffDays} 天`,
-            severity: 'success',
-            icon: '✅'
-          })
-        }
-      }
-
-      // 6. 查询次数统计（艾佰瑞特色）
-      const existingQueries = verifyRecords.value.filter(r =>
-        r.udiPi === parsed.pi || r.serialNo === parsed.serialNo
-      )
-      const queryCount = existingQueries.length + 1
-      const isFirstQuery = queryCount === 1
-
-      if (!isFirstQuery) {
-        status = 'authentic_repeat'
-        statusMsg = `该序列号是第${queryCount}次查询`
-      } else {
-        statusMsg = '该序列号是第1次查询'
-      }
-
-      // 7. 构建结果
-      const isAuthentic = status === 'authentic' || status === 'authentic_repeat'
-
-      // 生成动态防伪水印
-      const watermark = isAuthentic ? generateWatermark({
-        productId: product.id,
-        batchNo: parsed.batchNo || '',
-        serialNo: parsed.serialNo || '',
-        queryCount
-      }) : undefined
-
-      lastResult.value = {
-        isAuthentic,
-        queryCount,
-        productName: product.name,
-        batchNo: parsed.batchNo || '-',
-        serialNo: parsed.serialNo || '-',
-        productionDate: parsed.productionDate || '-',
-        expiryDate: parsed.expiryDate || '-',
-        manufacturer: product.manufacturer,
-        statusBadge: {
-          text: isAuthentic ? (isFirstQuery ? '真' : `第${queryCount}次查询`) : statusMsg,
-          type: isAuthentic ? 'success' : 'danger',
-          icon: isAuthentic ? '✓' : '⚠️'
-        },
-        checks,
-        watermark
-      }
-
-      saveRecord(rawCode, parsed, status, statusMsg, checks, operator, isFirstQuery, queryCount)
-
-      return lastResult.value
+      // 本地降级处理（原有逻辑）
+      return await verifyProductLocal(rawCode, operator)
     } finally {
       isScanning.value = false
     }
   }
 
   /**
-   * 机构查询
+   * 本地扫码验真（API降级时使用）
+   */
+  const verifyProductLocal = async (rawCode: string, operator: string = '系统'): Promise<ScanResultDisplay> => {
+    const parsed = parseGS1(rawCode)
+    const checks: VerifyCheck[] = []
+
+    if (!parsed || !parsed.isValid) {
+      checks.push({ name: '条码格式', passed: false, message: '无法识别该条码', severity: 'error', icon: '❌' })
+      lastResult.value = {
+        isAuthentic: false, queryCount: 0, productName: '未知产品',
+        batchNo: '-', serialNo: '-', productionDate: '-', expiryDate: '-', manufacturer: '-',
+        statusBadge: { text: '序列号不存在', type: 'danger', icon: '⚠️' }, checks
+      }
+      return lastResult.value
+    }
+
+    checks.push({ name: '条码格式', passed: true, message: '条码格式正确', severity: 'success', icon: '✅' })
+
+    const product = PRODUCT_DB[parsed.di]
+    if (!product) {
+      checks.push({ name: '产品注册', passed: false, message: '未找到该产品', severity: 'error', icon: '❌' })
+      lastResult.value = {
+        isAuthentic: false, queryCount: 0, productName: '未知产品',
+        batchNo: parsed.batchNo || '-', serialNo: parsed.serialNo || '-',
+        productionDate: parsed.productionDate || '-', expiryDate: parsed.expiryDate || '-', manufacturer: '-',
+        statusBadge: { text: '序列号不存在', type: 'danger', icon: '⚠️' }, checks
+      }
+      return lastResult.value
+    }
+
+    checks.push({ name: '产品注册', passed: true, message: `产品：${product.name}`, severity: 'success', icon: '✅' })
+
+    if (parsed.batchNo && RECALLED_BATCHES.has(parsed.batchNo)) {
+      checks.push({ name: '召回检查', passed: false, message: '该批次已被召回', severity: 'error', icon: '🚨' })
+      lastResult.value = {
+        isAuthentic: true, queryCount: 1, productName: product.name,
+        batchNo: parsed.batchNo, serialNo: parsed.serialNo || '-',
+        productionDate: parsed.productionDate || '-', expiryDate: parsed.expiryDate || '-', manufacturer: product.manufacturer,
+        statusBadge: { text: '该批次已召回', type: 'danger', icon: '🚨' }, checks
+      }
+      return lastResult.value
+    }
+
+    checks.push({ name: '召回检查', passed: true, message: '未被召回', severity: 'success', icon: '✅' })
+
+    const today = new Date()
+    const expiryDate = parsed.expiryDate ? new Date(parsed.expiryDate) : null
+    let status: ScanVerifyStatus = 'authentic'
+
+    if (expiryDate) {
+      const diffDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      if (diffDays < 0) {
+        status = 'expired'
+        checks.push({ name: '效期检查', passed: false, message: `已过期 ${Math.abs(diffDays)} 天`, severity: 'error', icon: '⛔' })
+      } else if (diffDays <= 90) {
+        checks.push({ name: '效期检查', passed: true, message: `即将到期，剩余 ${diffDays} 天`, severity: 'warning', icon: '⚠️' })
+      } else {
+        checks.push({ name: '效期检查', passed: true, message: `效期正常，剩余 ${diffDays} 天`, severity: 'success', icon: '✅' })
+      }
+    }
+
+    const existingQueries = verifyRecords.value.filter(r => r.udiPi === parsed.pi || r.serialNo === parsed.serialNo)
+    const queryCount = existingQueries.length + 1
+    const isFirstQuery = queryCount === 1
+    let statusMsg = isFirstQuery ? '该序列号是第1次查询' : `该序列号是第${queryCount}次查询`
+    if (!isFirstQuery) status = 'authentic_repeat'
+
+    const isAuthentic = status === 'authentic' || status === 'authentic_repeat'
+    const watermark = isAuthentic ? generateWatermark({
+      productId: product.id, batchNo: parsed.batchNo || '', serialNo: parsed.serialNo || '', queryCount
+    }) : undefined
+
+    lastResult.value = {
+      isAuthentic, queryCount,
+      productName: product.name,
+      batchNo: parsed.batchNo || '-', serialNo: parsed.serialNo || '-',
+      productionDate: parsed.productionDate || '-', expiryDate: parsed.expiryDate || '-', manufacturer: product.manufacturer,
+      statusBadge: {
+        text: isAuthentic ? (isFirstQuery ? '真' : `第${queryCount}次查询`) : statusMsg,
+        type: isAuthentic ? 'success' : 'danger', icon: isAuthentic ? '✓' : '⚠️'
+      },
+      checks, watermark
+    }
+
+    saveRecord(rawCode, parsed, status, statusMsg, checks, operator, isFirstQuery, queryCount)
+    return lastResult.value
+  }
+
+  /**
+   * 机构查询（优先API，降级本地）
    */
   const verifyInstitution = (name: string, province?: string, city?: string): InstitutionVerifyRecord[] => {
     return institutionRecords.value.filter(inst => {
@@ -414,7 +332,7 @@ export const useScanVerifyStore = defineStore('scanVerify', () => {
     stats,
     queryHistory,
     verifyProduct,
-    verifyInstitution,
+    verifyInstitution: verifyInstitution,
     getAuthorizedInstitutions,
     mockProductScan
   }

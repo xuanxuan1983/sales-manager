@@ -1,0 +1,211 @@
+{
+  "products": [
+    {
+      "id": "P001",
+      "name": "天新福胶原蛋白植入剂",
+      "spec": "1ml/支",
+      "category": "collagen",
+      "udiDi": "06973894820001",
+      "manufacturer": "天新福（北京）医疗器材股份有限公司",
+      "storageTemp": "2-8°C",
+      "shelfLifeMonths": 24,
+      "isUDIRequired": true,
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "P002",
+      "name": "天新福胶原蛋白植入剂",
+      "spec": "2ml/支",
+      "category": "collagen",
+      "udiDi": "06973894820002",
+      "manufacturer": "天新福（北京）医疗器材股份有限公司",
+      "storageTemp": "2-8°C",
+      "shelfLifeMonths": 24,
+      "isUDIRequired": true,
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "P003",
+      "name": "天新福胶原蛋白水光",
+      "spec": "5ml/支",
+      "category": "collagen",
+      "udiDi": "06973894820003",
+      "manufacturer": "天新福（北京）医疗器材股份有限公司",
+      "storageTemp": "2-8°C",
+      "shelfLifeMonths": 18,
+      "isUDIRequired": true,
+      "status": "active",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "batches": [
+    {
+      "id": "B001",
+      "productId": "P001",
+      "productName": "天新福胶原蛋白植入剂",
+      "batchNo": "TXF-20260115-A",
+      "productionDate": "2026-01-15",
+      "expiryDate": "2028-01-14",
+      "quantity": 500,
+      "remaining": 320,
+      "storageTemp": "2-8°C",
+      "status": "in_stock",
+      "udiCount": 500,
+      "createdAt": "2026-01-20T10:00:00Z"
+    },
+    {
+      "id": "B002",
+      "productId": "P001",
+      "productName": "天新福胶原蛋白植入剂",
+      "batchNo": "TXF-20260320-B",
+      "productionDate": "2026-03-20",
+      "expiryDate": "2027-09-19",
+      "quantity": 300,
+      "remaining": 280,
+      "storageTemp": "2-8°C",
+      "status": "in_stock",
+      "udiCount": 300,
+      "createdAt": "2026-03-25T10:00:00Z"
+    },
+    {
+      "id": "B003",
+      "productId": "P002",
+      "productName": "天新福胶原蛋白植入剂",
+      "batchNo": "TXF-20251010-C",
+      "productionDate": "2025-10-10",
+      "expiryDate": "2026-07-09",
+      "quantity": 200,
+      "remaining": 45,
+      "storageTemp": "2-8°C",
+      "status": "in_stock",
+      "udiCount": 200,
+      "createdAt": "2025-10-15T10:00:00Z"
+    }
+  ],
+  "udis": [
+    {
+      "id": "U001",
+      "di": "06973894820001",
+      "pi": "TXF-20260115-A-001",
+      "batchNo": "TXF-20260115-A",
+      "serialNo": "001",
+      "productId": "P001",
+      "productName": "天新福胶原蛋白植入剂",
+      "productionDate": "2026-01-15",
+      "expiryDate": "2028-01-14",
+      "status": "sold"
+    },
+    {
+      "id": "U002",
+      "di": "06973894820001",
+      "pi": "TXF-20260115-A-002",
+      "batchNo": "TXF-20260115-A",
+      "serialNo": "002",
+      "productId": "P001",
+      "productName": "天新福胶原蛋白植入剂",
+      "productionDate": "2026-01-15",
+      "expiryDate": "2028-01-14",
+      "status": "sold"
+    }
+  ],
+  "traceRecords": [
+    {
+      "id": "T001",
+      "udiDi": "06973894820001",
+      "udiPi": "TXF-20260115-A-001",
+      "batchNo": "TXF-20260115-A",
+      "serialNo": "001",
+      "productId": "P001",
+      "productName": "天新福胶原蛋白植入剂",
+      "from": "天新福工厂仓库",
+      "to": "北京协和医院",
+      "toType": "hospital",
+      "operation": "outbound",
+      "quantity": 1,
+      "timestamp": "2026-04-10T09:30:00Z",
+      "operator": "张仓库",
+      "orderId": "O20260410001"
+    },
+    {
+      "id": "T002",
+      "udiDi": "06973894820001",
+      "udiPi": "TXF-20260115-A-002",
+      "batchNo": "TXF-20260115-A",
+      "serialNo": "002",
+      "productId": "P001",
+      "productName": "天新福胶原蛋白植入剂",
+      "from": "天新福工厂仓库",
+      "to": "上海华美医疗美容门诊部",
+      "toType": "clinic",
+      "operation": "outbound",
+      "quantity": 1,
+      "timestamp": "2026-04-12T14:20:00Z",
+      "operator": "李仓库",
+      "orderId": "O20260412002"
+    }
+  ],
+  "institutions": [
+    {
+      "id": "I001",
+      "name": "北京协和医院",
+      "type": "hospital",
+      "province": "北京市",
+      "city": "北京市",
+      "district": "东城区",
+      "address": "东城区帅府园1号",
+      "contact": "张主任",
+      "phone": "010-69156114",
+      "licenseNo": "110101000001",
+      "isAuthorized": true,
+      "authorizedProducts": ["P001", "P002", "P003"],
+      "verifyStatus": "verified",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2025-03-01T00:00:00Z"
+    },
+    {
+      "id": "I002",
+      "name": "上海华美医疗美容门诊部",
+      "type": "clinic",
+      "province": "上海市",
+      "city": "上海市",
+      "district": "浦东新区",
+      "address": "浦东新区源深路155号",
+      "contact": "李经理",
+      "phone": "021-58858888",
+      "licenseNo": "310115000002",
+      "isAuthorized": true,
+      "authorizedProducts": ["P001", "P002"],
+      "verifyStatus": "verified",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2025-03-01T00:00:00Z"
+    },
+    {
+      "id": "I003",
+      "name": "广州某美容工作室",
+      "type": "beauty_salon",
+      "province": "广东省",
+      "city": "广州市",
+      "isAuthorized": false,
+      "authorizedProducts": [],
+      "verifyStatus": "unverified",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "scanRecords": [],
+  "recalledBatches": [
+    {
+      "id": "R001",
+      "batchNo": "TXF-20250101-R",
+      "productId": "P001",
+      "reason": "质量异常",
+      "recallDate": "2025-01-15T00:00:00Z",
+      "status": "active"
+    }
+  ]
+}
