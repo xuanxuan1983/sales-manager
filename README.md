@@ -1,5 +1,89 @@
-# Vue 3 + TypeScript + Vite
+# 天新福销售管理系统
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+> 三类医疗器械 UDI 追溯 + 扫码验真 + 销售管理一体化平台
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 🚀 在线演示
+
+| 环境 | 地址 | 状态 |
+|-----|------|------|
+| 前端 | https://sales-manager.vercel.app | 待部署 |
+| API | https://sales-manager-api.railway.app | 待部署 |
+
+## 📱 核心功能
+
+### 1. 扫码验真（消费者端）
+- 微信扫码验证产品真伪
+- 显示查询次数（第1次/第N次）
+- 动态防伪水印（防截图伪造）
+- 正规合作机构查询
+
+### 2. UDI 追溯（企业端）
+- 扫码入库/出库
+- 全链路追溯查询
+- 效期预警管理
+- 不良事件上报
+
+### 3. 销售管理
+- 分销商分级管理
+- 销售目标追踪
+- 数据报表看板
+- 人员规划
+
+## 🛠 技术栈
+
+| 层 | 技术 |
+|---|------|
+| 前端 | Vue 3 + Vite + TypeScript + Element Plus |
+| 状态管理 | Pinia |
+| 图表 | ECharts |
+| 后端 | Express + json-server (Mock) |
+| 部署 | Vercel + Railway |
+
+## 🏃 本地开发
+
+```bash
+# 安装依赖
+npm install
+
+# 启动前端 + Mock 后端
+npm run dev:full
+
+# 或分别启动
+npm run dev      # 前端
+npm run mock     # 后端
+```
+
+## 📦 部署
+
+详见 [DEPLOY.md](./DEPLOY.md)
+
+## 📝 数据说明
+
+当前展示数据为**胶原蛋白产品线**演示数据：
+- 胶原蛋白植入剂 1ml/2ml
+- 胶原蛋白水光 5ml
+
+**9月获证后将更新为真实 UDI 码和产品信息。**
+
+## 🔐 扫码验真流程
+
+```
+消费者微信扫码
+    ↓
+解析 UDI 码
+    ↓
+验证产品真伪
+    ↓
+显示查询结果 + 防伪水印
+    ↓
+可查询正规合作机构
+```
+
+## 📞 联系
+
+- 生产企业：天新福（北京）医疗器材股份有限公司
+- 客服电话：010-69702567
+
+---
+
+*本项目为演示版本，正式版本将在产品获证后上线。*
