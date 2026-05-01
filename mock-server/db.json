@@ -181,7 +181,7 @@
       "isAuthorized": true,
       "authorizedProducts": ["P001", "P002"],
       "verifyStatus": "verified",
-      "createdAt": "2024-01-01T00:00:00Z",
+      "createdAt": "20201-01-01T00:00:00Z",
       "updatedAt": "2025-03-01T00:00:00Z"
     },
     {
@@ -198,14 +198,5 @@
     }
   ],
   "scanRecords": [],
-  "recalledBatches": [
-    {
-      "id": "R001",
-      "batchNo": "TXF-20250101-R",
-      "productId": "P001",
-      "reason": "质量异常",
-      "recallDate": "2025-01-15T00:00:00Z",
-      "status": "active"
-    }
-  ]
+  "recalledBatches": []
 }
