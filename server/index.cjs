@@ -23,6 +23,7 @@ const db = require('./database.cjs')
 // 路由
 app.use('/api/auth', require('./routes/auth.cjs'))
 app.use('/api/scan', require('./routes/scan.cjs'))
+app.use('/api/collagen-projects', require('./routes/collagenProjects.cjs'))
 
 // 健康检查
 app.get('/api/health', (req, res) => {
