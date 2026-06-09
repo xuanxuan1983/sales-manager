@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useMedicalSalesStore } from '@/stores/medicalSales'
+import { useCollagenProjectsStore } from '@/stores/collagenProjects'
 import { 
   parseOrdersExcel, parseClientsExcel, parseProductsExcel, parseSalespeopleExcel,
-  parseDistributorsExcel, parseIndicatorsExcel, parseHeadcountExcel,
+  parseDistributorsExcel, parseIndicatorsExcel, parseHeadcountExcel, parseCollagenProjectsExcel,
   generateTemplate 
 } from '@/utils/import'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const store = useMedicalSalesStore()
+const collagenProjectsStore = useCollagenProjectsStore()
 const uploading = ref(false)
 const dragOver = ref(false)
 const importProgress = ref(0)
-const activeTab = ref<'orders' | 'clients' | 'products' | 'salespeople' | 'distributors' | 'indicators' | 'headcount'>('orders')
+const activeTab = ref<'orders' | 'clients' | 'products' | 'salespeople' | 'distributors' | 'indicators' | 'headcount' | 'collagenProjects'>('orders')
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -71,6 +73,9 @@ const processFile = async (file: File) => {
   } else if (activeTab.value === 'headcount') {
     const result = await parseHeadcountExcel(file)
     return { count: store.importHeadcountPlans(result.data as any) }
+  } else if (activeTab.value === 'collagenProjects') {
+    const result = await parseCollagenProjectsExcel(file)
+    return { count: collagenProjectsStore.importProjects(result.data) }
   }
   return null
 }
@@ -128,6 +133,7 @@ const handleClear = async () => {
     else if (activeTab.value === 'distributors') store.clearDistributors()
     else if (activeTab.value === 'indicators') store.clearIndicators()
     else if (activeTab.value === 'headcount') store.clearHeadcountPlans()
+    else if (activeTab.value === 'collagenProjects') collagenProjectsStore.setProjects([])
     ElMessage.success('数据已清空')
   } catch { /* cancelled */ }
 }
@@ -143,7 +149,8 @@ const dataStats = {
   salespeople: { label: '销售', count: () => store.salespeople.length, icon: '👔', color: '#AF52DE' },
   distributors: { label: '代理商', count: () => store.distributors.length, icon: '🤝', color: '#5856D6' },
   indicators: { label: '指标', count: () => store.indicators.length, icon: '📈', color: '#FF3B30' },
-  headcount: { label: '人员', count: () => store.headcountPlans.length, icon: '👥', color: '#00C7BE' }
+  headcount: { label: '人员', count: () => store.headcountPlans.length, icon: '👥', color: '#00C7BE' },
+  collagenProjects: { label: '胶原项目', count: () => collagenProjectsStore.projects.length, icon: '🧬', color: '#0A84FF' }
 }
 
 const acceptedFormats = '.xlsx,.xls'
@@ -317,6 +324,24 @@ const acceptedFormats = '.xlsx,.xls'
               <tr><td><code>大区</code></td><td>所在大区</td></tr>
               <tr><td><code>计划编制</code></td><td>计划人数</td></tr>
               <tr><td><code>实际在岗</code></td><td>实际人数</td></tr>
+            </tbody>
+          </table>
+          <table class="mapping-table" v-else-if="activeTab === 'collagenProjects'">
+            <thead><tr><th>Excel 列名</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>机构名称</code></td><td>医美机构名称，必填</td></tr>
+              <tr><td><code>城市</code></td><td>机构所在城市</td></tr>
+              <tr><td><code>来源</code></td><td>直营/渠道/经销商/转介绍</td></tr>
+              <tr><td><code>阶段</code></td><td>待资料/待启动会/已发货/30天追踪/复购判断/样板沉淀/暂停</td></tr>
+              <tr><td><code>负责人</code></td><td>销售或项目负责人</td></tr>
+              <tr><td><code>决策</code></td><td>复购/续费陪跑/二次启动/样板沉淀/普通维护/暂停观察</td></tr>
+              <tr><td><code>风险</code></td><td>低/中/高</td></tr>
+              <tr><td><code>评分</code></td><td>综合启动或复购评分</td></tr>
+              <tr><td><code>病例数</code></td><td>首批病例数量</td></tr>
+              <tr><td><code>授权病例数</code></td><td>可用于沉淀的授权病例</td></tr>
+              <tr><td><code>内容数</code></td><td>已发布或已审核内容数量</td></tr>
+              <tr><td><code>GEO变化</code></td><td>Day 0 到 Day 30 的可见性变化</td></tr>
+              <tr><td><code>下一步</code></td><td>下一步动作</td></tr>
             </tbody>
           </table>
           <table class="mapping-table" v-else>

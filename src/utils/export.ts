@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
 import type { Order, OrderStatus, AdverseEvent } from '@/types/sales'
+import type { CollagenProjectInstitution } from '@/types/collagenProject'
 
 // ============ Status Mapping ============
 const statusMap: Record<OrderStatus, string> = {
@@ -254,4 +255,189 @@ const adverseEventSimpleConfig: ExportConfig<AdverseEvent> = {
 
 export const exportAdverseEventsSimple = (events: AdverseEvent[], filename?: string) => {
   exportToExcel(events as unknown as Record<string, unknown>[], adverseEventSimpleConfig as unknown as ExportConfig<Record<string, unknown>>, filename)
+}
+
+// ============ 胶原项目经营月报导出 ============
+export function exportCollagenProjectsMonthlyReport(projects: CollagenProjectInstitution[], filename?: string) {
+  const total = projects.length
+  const active = projects.filter(project => !['线索', '待资料', '暂停'].includes(project.stage)).length
+  const repurchase = projects.filter(project => project.decision === '复购').length
+  const renewal = projects.filter(project => project.decision === '续费陪跑').length
+  const restart = projects.filter(project => project.decision === '二次启动').length
+  const sampleReady = projects.filter(project => project.decision === '样板沉淀').length
+  const highRisk = projects.filter(project => project.risk === '高').length
+  const avgScore = total ? Math.round(projects.reduce((sum, project) => sum + project.score, 0) / total) : 0
+
+  const summaryRows = [
+    { 指标: '机构总数', 数值: total, 备注: '当前导出范围内机构总数' },
+    { 指标: '启动中机构', 数值: active, 备注: '已进入签约后交付或30天追踪' },
+    { 指标: '复购候选', 数值: repurchase, 备注: '后续决策为复购' },
+    { 指标: '续费陪跑', 数值: renewal, 备注: '后续决策为续费陪跑' },
+    { 指标: '二次启动', 数值: restart, 备注: '需重新锁定角色、病例和内容节奏' },
+    { 指标: '样板沉淀', 数值: sampleReady, 备注: '可进入招商/培训/GEO资产沉淀' },
+    { 指标: '高风险机构', 数值: highRisk, 备注: '需要负责人介入处理' },
+    { 指标: '平均评分', 数值: avgScore, 备注: '综合启动或复购评分' }
+  ]
+
+  const projectRows = projects.map(project => ({
+    机构名称: project.name,
+    城市: project.city,
+    来源: project.source,
+    阶段: project.stage,
+    负责人: project.owner,
+    决策: project.decision,
+    风险: project.risk,
+    评分: project.score,
+    发货日期: project.shippedAt || '',
+    '30天状态': project.day30Status,
+    医生培训: project.doctorTraining,
+    病例数: project.cases,
+    授权病例数: project.authorizedCases,
+    内容数: project.contentCount,
+    GEO变化: project.geoChange,
+    下一步: project.nextAction
+  }))
+
+  const workbook = XLSX.utils.book_new()
+  const summarySheet = XLSX.utils.json_to_sheet(summaryRows)
+  const projectSheet = XLSX.utils.json_to_sheet(projectRows)
+
+  summarySheet['!cols'] = [{ wch: 18 }, { wch: 10 }, { wch: 36 }]
+  projectSheet['!cols'] = [
+    { wch: 24 },
+    { wch: 10 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 10 },
+    { wch: 12 },
+    { wch: 8 },
+    { wch: 8 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 8 },
+    { wch: 12 },
+    { wch: 8 },
+    { wch: 10 },
+    { wch: 28 }
+  ]
+
+  XLSX.utils.book_append_sheet(workbook, summarySheet, '月度总览')
+  XLSX.utils.book_append_sheet(workbook, projectSheet, '机构项目池')
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+  const blob = new Blob([excelBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  })
+  const dateStr = new Date().toISOString().split('T')[0]
+  saveAs(blob, `${filename || '胶原项目经营数据月报'}_${dateStr}.xlsx`)
+}
+
+export function exportCollagenMonthlyReview(
+  projects: CollagenProjectInstitution[],
+  filename?: string
+) {
+  const activeProjects = projects.filter(project => !project.archivedAt)
+  const total = activeProjects.length
+  const active = activeProjects.filter(project => !['线索', '待资料', '暂停'].includes(project.stage)).length
+  const repurchase = activeProjects.filter(project => project.decision === '复购').length
+  const sampleReady = activeProjects.filter(project => project.decision === '样板沉淀').length
+  const highRisk = activeProjects.filter(project => project.risk === '高').length
+  const avgScore = total ? Math.round(activeProjects.reduce((sum, project) => sum + project.score, 0) / total) : 0
+
+  const summaryRows = [
+    { 指标: '推进中机构', 数值: total, 备注: '不含已归档项目' },
+    { 指标: '启动中机构', 数值: active, 备注: '已进入签约后交付或30天追踪' },
+    { 指标: '复购候选', 数值: repurchase, 备注: '后续决策为复购' },
+    { 指标: '样板候选', 数值: sampleReady, 备注: '可沉淀招商、培训或GEO资产' },
+    { 指标: '高风险机构', 数值: highRisk, 备注: '需要负责人或管理者介入' },
+    { 指标: '平均评分', 数值: avgScore, 备注: '推进中机构综合评分' }
+  ]
+
+  const ownerMap = new Map<string, {
+    负责人: string
+    机构数: number
+    复购候选: number
+    样板候选: number
+    高风险: number
+    跟进记录: number
+    平均分: number
+    scoreSum: number
+  }>()
+
+  activeProjects.forEach(project => {
+    const current = ownerMap.get(project.owner) ?? {
+      负责人: project.owner,
+      机构数: 0,
+      复购候选: 0,
+      样板候选: 0,
+      高风险: 0,
+      跟进记录: 0,
+      平均分: 0,
+      scoreSum: 0
+    }
+    current.机构数 += 1
+    current.复购候选 += project.decision === '复购' ? 1 : 0
+    current.样板候选 += project.decision === '样板沉淀' ? 1 : 0
+    current.高风险 += project.risk === '高' ? 1 : 0
+    current.跟进记录 += project.followUpLogs?.length ?? 0
+    current.scoreSum += project.score
+    current.平均分 = Math.round(current.scoreSum / current.机构数)
+    ownerMap.set(project.owner, current)
+  })
+
+  const ownerRows = Array.from(ownerMap.values()).map(({ scoreSum, ...row }) => row)
+  const stageRows = ['线索', '待资料', '待启动会', '已签约', '已发货', '30天追踪', '复购判断', '样板沉淀', '暂停']
+    .map(stage => ({
+      阶段: stage,
+      机构数: activeProjects.filter(project => project.stage === stage).length
+    }))
+
+  const blockedRows = activeProjects
+    .filter(project => project.risk === '高' || project.score < 65 || ['待资料', '待启动会', '暂停'].includes(project.stage))
+    .map(project => ({
+      机构名称: project.name,
+      城市: project.city,
+      负责人: project.owner,
+      阶段: project.stage,
+      风险: project.risk,
+      评分: project.score,
+      下一步: project.nextAction
+    }))
+
+  const opportunityRows = activeProjects
+    .filter(project => ['复购', '样板沉淀', '续费陪跑'].includes(project.decision))
+    .map(project => ({
+      机构名称: project.name,
+      城市: project.city,
+      负责人: project.owner,
+      决策: project.decision,
+      风险: project.risk,
+      评分: project.score,
+      GEO变化: project.geoChange,
+      内容数: project.contentCount,
+      下一步: project.nextAction
+    }))
+
+  const workbook = XLSX.utils.book_new()
+  const sheets = [
+    { name: '月度总览', data: summaryRows, widths: [18, 10, 36] },
+    { name: '负责人复盘', data: ownerRows, widths: [12, 10, 10, 10, 10, 10, 10] },
+    { name: '阶段结构', data: stageRows, widths: [16, 10] },
+    { name: '卡点项目', data: blockedRows, widths: [24, 10, 10, 12, 8, 8, 32] },
+    { name: '机会池', data: opportunityRows, widths: [24, 10, 10, 12, 8, 8, 10, 8, 32] }
+  ]
+
+  sheets.forEach(sheetConfig => {
+    const worksheet = XLSX.utils.json_to_sheet(sheetConfig.data)
+    worksheet['!cols'] = sheetConfig.widths.map(width => ({ wch: width }))
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetConfig.name)
+  })
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+  const blob = new Blob([excelBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  })
+  const dateStr = new Date().toISOString().split('T')[0]
+  saveAs(blob, `${filename || '胶原项目月度复盘'}_${dateStr}.xlsx`)
 }
