@@ -12,6 +12,7 @@ import type {
 const router = useRouter()
 const collagenProjectsStore = useCollagenProjectsStore()
 const errorMessage = ref('')
+const isSaving = ref(false)
 
 const form = reactive({
   name: '',
@@ -39,7 +40,7 @@ const day30StatusOptions: Array<CollagenProjectInstitution['day30Status']> = ['�
 
 const normalizeNonNegativeInteger = (value: number) => Math.max(0, Math.round(Number(value) || 0))
 
-const handleCreate = () => {
+const handleCreate = async () => {
   errorMessage.value = ''
 
   if (!form.name.trim()) {
@@ -54,25 +55,31 @@ const handleCreate = () => {
 
   const cases = normalizeNonNegativeInteger(form.cases)
   const authorizedCases = Math.min(cases, normalizeNonNegativeInteger(form.authorizedCases))
-  const project = collagenProjectsStore.createProject({
-    name: form.name.trim(),
-    city: form.city.trim() || '未填写',
-    owner: form.owner.trim(),
-    source: form.source.trim() || '未填写',
-    stage: form.stage,
-    decision: form.decision,
-    risk: form.risk,
-    score: Math.min(100, Math.max(0, Math.round(Number(form.score) || 0))),
-    doctorTraining: form.doctorTraining,
-    day30Status: form.day30Status,
-    cases,
-    authorizedCases,
-    contentCount: normalizeNonNegativeInteger(form.contentCount),
-    geoChange: Math.round(Number(form.geoChange) || 0),
-    nextAction: form.nextAction.trim() || '待补充下一步动作'
-  })
+  isSaving.value = true
 
-  router.push(`/collagen-projects/${project.id}`)
+  try {
+    const project = await collagenProjectsStore.createProject({
+      name: form.name.trim(),
+      city: form.city.trim() || '未填写',
+      owner: form.owner.trim(),
+      source: form.source.trim() || '未填写',
+      stage: form.stage,
+      decision: form.decision,
+      risk: form.risk,
+      score: Math.min(100, Math.max(0, Math.round(Number(form.score) || 0))),
+      doctorTraining: form.doctorTraining,
+      day30Status: form.day30Status,
+      cases,
+      authorizedCases,
+      contentCount: normalizeNonNegativeInteger(form.contentCount),
+      geoChange: Math.round(Number(form.geoChange) || 0),
+      nextAction: form.nextAction.trim() || '待补充下一步动作'
+    })
+
+    router.push(`/collagen-projects/${project.id}`)
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>
 
@@ -84,13 +91,13 @@ const handleCreate = () => {
         <p class="eyebrow">New Institution Project</p>
         <h2>新增胶原针剂机构项目</h2>
       </div>
-      <button class="save-button" @click="handleCreate">创建项目</button>
+      <button class="save-button" :disabled="isSaving" @click="handleCreate">{{ isSaving ? '创建中' : '创建项目' }}</button>
     </section>
 
     <section class="form-panel">
       <div class="panel-header">
         <h3>建档信息</h3>
-        <span>{{ errorMessage || '创建后自动保存到本地' }}</span>
+        <span>{{ errorMessage || '创建后优先保存到后端，失败时保存在本地' }}</span>
       </div>
       <div class="form-grid">
         <label>

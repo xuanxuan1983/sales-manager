@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCollagenProjectsStore } from '@/stores/collagenProjects'
 import type {
@@ -15,6 +15,9 @@ const collagenProjectsStore = useCollagenProjectsStore()
 const project = computed(() => collagenProjectsStore.findProjectById(String(route.params.id)))
 const saveMessage = ref('')
 const followUpMessage = ref('')
+const isSaving = ref(false)
+const isArchiving = ref(false)
+const isCompletingFollowUp = ref(false)
 
 const editForm = reactive({
   stage: '待资料' as CollagenProjectStage,
@@ -101,7 +104,11 @@ const caseAuthorizationRate = computed(() => {
   return Math.round((project.value.authorizedCases / project.value.cases) * 100)
 })
 
-const handleSave = () => {
+onMounted(() => {
+  collagenProjectsStore.loadProjects()
+})
+
+const handleSave = async () => {
   if (!project.value) return
 
   const normalizedCases = Math.max(0, Math.round(Number(editForm.cases) || 0))
@@ -110,32 +117,44 @@ const handleSave = () => {
     Math.max(0, Math.round(Number(editForm.authorizedCases) || 0))
   )
 
-  const updated = collagenProjectsStore.updateProject(project.value.id, {
-    stage: editForm.stage,
-    decision: editForm.decision,
-    risk: editForm.risk,
-    score: Math.min(100, Math.max(0, Math.round(Number(editForm.score) || 0))),
-    doctorTraining: editForm.doctorTraining,
-    day30Status: editForm.day30Status,
-    cases: normalizedCases,
-    authorizedCases: normalizedAuthorizedCases,
-    contentCount: Math.max(0, Math.round(Number(editForm.contentCount) || 0)),
-    geoChange: Math.round(Number(editForm.geoChange) || 0),
-    nextAction: editForm.nextAction.trim() || '待补充下一步动作'
-  })
+  isSaving.value = true
 
-  saveMessage.value = updated ? '已保存到本地' : '保存失败'
+  try {
+    const updated = await collagenProjectsStore.updateProject(project.value.id, {
+      stage: editForm.stage,
+      decision: editForm.decision,
+      risk: editForm.risk,
+      score: Math.min(100, Math.max(0, Math.round(Number(editForm.score) || 0))),
+      doctorTraining: editForm.doctorTraining,
+      day30Status: editForm.day30Status,
+      cases: normalizedCases,
+      authorizedCases: normalizedAuthorizedCases,
+      contentCount: Math.max(0, Math.round(Number(editForm.contentCount) || 0)),
+      geoChange: Math.round(Number(editForm.geoChange) || 0),
+      nextAction: editForm.nextAction.trim() || '待补充下一步动作'
+    })
+
+    saveMessage.value = updated ? '已保存' : '保存失败'
+  } finally {
+    isSaving.value = false
+  }
 }
 
-const handleArchiveToggle = () => {
+const handleArchiveToggle = async () => {
   if (!project.value) return
 
   const wasArchived = Boolean(project.value.archivedAt)
-  const updated = wasArchived
-    ? collagenProjectsStore.restoreProject(project.value.id)
-    : collagenProjectsStore.archiveProject(project.value.id)
+  isArchiving.value = true
 
-  saveMessage.value = updated ? (wasArchived ? '已恢复到推进中' : '已归档到历史项目') : '操作失败'
+  try {
+    const updated = wasArchived
+      ? await collagenProjectsStore.restoreProject(project.value.id)
+      : await collagenProjectsStore.archiveProject(project.value.id)
+
+    saveMessage.value = updated ? (wasArchived ? '已恢复到推进中' : '已归档到历史项目') : '操作失败'
+  } finally {
+    isArchiving.value = false
+  }
 }
 
 const formatLogTime = (value: string) => {
@@ -147,20 +166,26 @@ const formatLogTime = (value: string) => {
   }).format(new Date(value))
 }
 
-const handleCompleteFollowUp = () => {
+const handleCompleteFollowUp = async () => {
   if (!project.value) return
 
-  const updated = collagenProjectsStore.completeFollowUp(
-    project.value.id,
-    followUpForm.result,
-    followUpForm.nextAction
-  )
+  isCompletingFollowUp.value = true
 
-  if (updated) {
-    followUpForm.result = ''
-    followUpForm.nextAction = ''
+  try {
+    const updated = await collagenProjectsStore.completeFollowUp(
+      project.value.id,
+      followUpForm.result,
+      followUpForm.nextAction
+    )
+
+    if (updated) {
+      followUpForm.result = ''
+      followUpForm.nextAction = ''
+    }
+    followUpMessage.value = updated ? '已写入跟进记录' : '记录失败'
+  } finally {
+    isCompletingFollowUp.value = false
   }
-  followUpMessage.value = updated ? '已写入跟进记录' : '记录失败'
 }
 </script>
 
@@ -314,7 +339,7 @@ const handleCompleteFollowUp = () => {
           </label>
         </div>
         <div class="edit-actions">
-          <button class="save-button" @click="handleSave">保存更新</button>
+          <button class="save-button" :disabled="isSaving" @click="handleSave">{{ isSaving ? '保存中' : '保存更新' }}</button>
         </div>
       </section>
 
@@ -324,8 +349,8 @@ const handleCompleteFollowUp = () => {
           <p>{{ project.nextAction }}</p>
         </div>
         <div class="action-buttons">
-          <button class="archive-button" @click="handleArchiveToggle">
-            {{ project.archivedAt ? '恢复项目' : '归档项目' }}
+          <button class="archive-button" :disabled="isArchiving" @click="handleArchiveToggle">
+            {{ isArchiving ? '处理中' : project.archivedAt ? '恢复项目' : '归档项目' }}
           </button>
           <router-link class="primary-link" to="/import">导入更新数据</router-link>
         </div>
@@ -351,7 +376,9 @@ const handleCompleteFollowUp = () => {
           </label>
         </div>
         <div class="edit-actions">
-          <button class="save-button" @click="handleCompleteFollowUp">完成本次跟进</button>
+          <button class="save-button" :disabled="isCompletingFollowUp" @click="handleCompleteFollowUp">
+            {{ isCompletingFollowUp ? '记录中' : '完成本次跟进' }}
+          </button>
         </div>
       </section>
 

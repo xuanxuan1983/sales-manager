@@ -75,7 +75,7 @@ const processFile = async (file: File) => {
     return { count: store.importHeadcountPlans(result.data as any) }
   } else if (activeTab.value === 'collagenProjects') {
     const result = await parseCollagenProjectsExcel(file)
-    return { count: collagenProjectsStore.importProjects(result.data) }
+    return { count: await collagenProjectsStore.importProjects(result.data) }
   }
   return null
 }
@@ -133,7 +133,7 @@ const handleClear = async () => {
     else if (activeTab.value === 'distributors') store.clearDistributors()
     else if (activeTab.value === 'indicators') store.clearIndicators()
     else if (activeTab.value === 'headcount') store.clearHeadcountPlans()
-    else if (activeTab.value === 'collagenProjects') collagenProjectsStore.setProjects([])
+    else if (activeTab.value === 'collagenProjects') await collagenProjectsStore.setProjects([])
     ElMessage.success('数据已清空')
   } catch { /* cancelled */ }
 }
