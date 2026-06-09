@@ -2,12 +2,15 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import {
   archiveCollagenProject,
+  clearCollagenProjects,
   completeCollagenFollowUp,
   createCollagenProject,
   getCollagenProjects,
+  importCollagenProjects,
   restoreCollagenProject,
   updateCollagenProject,
   type CreateCollagenProjectPayload,
+  type ImportCollagenProjectPayloadItem,
   type UpdateCollagenProjectPayload
 } from '@/api/collagenProjects'
 import type {
@@ -178,6 +181,12 @@ const toUpdatePayload = (patch: Partial<CollagenProjectInstitution>): UpdateColl
   delete payload.archivedAt
   delete payload.followUpLogs
   return payload
+}
+
+const toImportPayload = (project: CollagenProjectInstitution): ImportCollagenProjectPayloadItem => {
+  const payload = { ...project } as Partial<CollagenProjectInstitution>
+  delete payload.followUpLogs
+  return payload as ImportCollagenProjectPayloadItem
 }
 
 export const useCollagenProjectsStore = defineStore('collagenProjects', () => {
@@ -352,16 +361,30 @@ export const useCollagenProjectsStore = defineStore('collagenProjects', () => {
   }
 
   const setProjects = async (nextProjects: CollagenProjectInstitution[]) => {
+    if (!nextProjects.length) {
+      try {
+        const result = await clearCollagenProjects()
+        applyProjects(result.list)
+        markApiSuccess()
+        return result.total
+      } catch (error) {
+        markApiFailure(error)
+      }
+    }
+
     applyProjects(nextProjects)
     return nextProjects.length
   }
 
   const importProjects = async (nextProjects: CollagenProjectInstitution[]) => {
     try {
-      const importedProjects = await Promise.all(nextProjects.map(project => createCollagenProject(toCreatePayload(project))))
-      applyProjects(importedProjects)
+      const result = await importCollagenProjects({
+        projects: nextProjects.map(project => toImportPayload(project)),
+        mode: 'replace'
+      })
+      applyProjects(result.list)
       markApiSuccess()
-      return importedProjects.length
+      return result.imported
     } catch (error) {
       markApiFailure(error)
       applyProjects(nextProjects)
@@ -479,9 +502,22 @@ export const useCollagenProjectsStore = defineStore('collagenProjects', () => {
     })
   }
 
-  const resetToSampleProjects = () => {
-    projects.value = cloneMockProjects()
-    saveProjects()
+  const resetToSampleProjects = async () => {
+    const sampleProjects = cloneMockProjects()
+
+    try {
+      const result = await importCollagenProjects({
+        projects: sampleProjects.map(project => toImportPayload(project)),
+        mode: 'replace'
+      })
+      applyProjects(result.list)
+      markApiSuccess()
+      return result.imported
+    } catch (error) {
+      markApiFailure(error)
+      applyProjects(sampleProjects)
+      return sampleProjects.length
+    }
   }
 
   const filterProjects = (

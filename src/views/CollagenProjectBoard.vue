@@ -8,6 +8,7 @@ const collagenProjectsStore = useCollagenProjectsStore()
 const stageFilter = ref<'全部' | CollagenProjectStage>('全部')
 const riskFilter = ref<'全部' | CollagenProjectRiskLevel>('全部')
 const archiveFilter = ref<'推进中' | '已归档' | '全部'>('推进中')
+const isResettingSamples = ref(false)
 
 const filteredProjects = computed(() => {
   return collagenProjectsStore.filterProjects(stageFilter.value, riskFilter.value, archiveFilter.value)
@@ -50,11 +51,17 @@ const handleExportMonthlyReport = () => {
   exportCollagenProjectsMonthlyReport(filteredProjects.value)
 }
 
-const handleResetSampleProjects = () => {
-  collagenProjectsStore.resetToSampleProjects()
-  stageFilter.value = '全部'
-  riskFilter.value = '全部'
-  archiveFilter.value = '推进中'
+const handleResetSampleProjects = async () => {
+  isResettingSamples.value = true
+
+  try {
+    await collagenProjectsStore.resetToSampleProjects()
+    stageFilter.value = '全部'
+    riskFilter.value = '全部'
+    archiveFilter.value = '推进中'
+  } finally {
+    isResettingSamples.value = false
+  }
 }
 </script>
 
@@ -80,7 +87,9 @@ const handleResetSampleProjects = () => {
           <option v-for="status in archiveOptions" :key="status" :value="status">{{ status }}</option>
         </select>
         <router-link class="new-link" to="/collagen-projects/new">新增机构</router-link>
-        <button class="secondary-button" @click="handleResetSampleProjects">恢复样例</button>
+        <button class="secondary-button" :disabled="isResettingSamples" @click="handleResetSampleProjects">
+          {{ isResettingSamples ? '恢复中' : '恢复样例' }}
+        </button>
         <button class="export-button" @click="handleExportMonthlyReport">导出月报</button>
       </div>
     </section>
