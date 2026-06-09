@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useCollagenProjectsStore } from '@/stores/collagenProjects'
 import type { CollagenProjectRiskLevel } from '@/types/collagenProject'
 
@@ -42,6 +42,10 @@ const riskClass = (risk: CollagenProjectRiskLevel) => ({
   'risk-low': risk === '低',
   'risk-medium': risk === '中',
   'risk-high': risk === '高'
+})
+
+onMounted(() => {
+  collagenProjectsStore.loadProjects()
 })
 </script>
 

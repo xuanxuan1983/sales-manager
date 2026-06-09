@@ -1,5 +1,15 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
+import {
+  archiveCollagenProject,
+  completeCollagenFollowUp,
+  createCollagenProject,
+  getCollagenProjects,
+  restoreCollagenProject,
+  updateCollagenProject,
+  type CreateCollagenProjectPayload,
+  type UpdateCollagenProjectPayload
+} from '@/api/collagenProjects'
 import type {
   CollagenProjectFollowUpLog,
   CollagenProjectInstitution,
@@ -147,14 +157,67 @@ const readStoredProjects = () => {
 const createProjectId = () => `cp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 const createFollowUpLogId = () => `ful-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) return error.message
+  return '后端暂不可用，已使用本地缓存'
+}
+
+const toCreatePayload = (
+  project: Omit<CollagenProjectInstitution, 'id'> | CollagenProjectInstitution
+): CreateCollagenProjectPayload => {
+  const payload = { ...project } as Partial<CollagenProjectInstitution>
+  delete payload.id
+  delete payload.archivedAt
+  delete payload.followUpLogs
+  return payload as CreateCollagenProjectPayload
+}
+
+const toUpdatePayload = (patch: Partial<CollagenProjectInstitution>): UpdateCollagenProjectPayload => {
+  const payload = { ...patch }
+  delete payload.id
+  delete payload.archivedAt
+  delete payload.followUpLogs
+  return payload
+}
+
 export const useCollagenProjectsStore = defineStore('collagenProjects', () => {
   const projects = ref<CollagenProjectInstitution[]>(readStoredProjects() ?? cloneMockProjects())
+  const isLoading = ref(false)
+  const apiAvailable = ref(false)
+  const lastError = ref<string | null>(null)
   const activeProjects = computed(() => projects.value.filter(project => !project.archivedAt))
   const archivedProjects = computed(() => projects.value.filter(project => project.archivedAt))
 
   const saveProjects = () => {
     if (!isBrowser()) return
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(projects.value))
+  }
+
+  const applyProjects = (nextProjects: CollagenProjectInstitution[]) => {
+    projects.value = nextProjects
+    saveProjects()
+  }
+
+  const markApiSuccess = () => {
+    apiAvailable.value = true
+    lastError.value = null
+  }
+
+  const markApiFailure = (error: unknown) => {
+    apiAvailable.value = false
+    lastError.value = getErrorMessage(error)
+  }
+
+  const replaceProject = (nextProject: CollagenProjectInstitution) => {
+    const index = projects.value.findIndex(project => project.id === nextProject.id)
+    if (index === -1) {
+      applyProjects([nextProject, ...projects.value])
+      return
+    }
+
+    const nextProjects = [...projects.value]
+    nextProjects[index] = nextProject
+    applyProjects(nextProjects)
   }
 
   const metrics = computed<CollagenProjectMetrics>(() => {
@@ -267,71 +330,150 @@ export const useCollagenProjectsStore = defineStore('collagenProjects', () => {
     }
   })
 
-  const setProjects = (nextProjects: CollagenProjectInstitution[]) => {
-    projects.value = nextProjects
-    saveProjects()
+  const loadProjects = async () => {
+    isLoading.value = true
+
+    try {
+      const result = await getCollagenProjects({
+        archiveStatus: 'all',
+        page: 1,
+        pageSize: 200
+      })
+
+      applyProjects(result.list)
+      markApiSuccess()
+      return result.list.length
+    } catch (error) {
+      markApiFailure(error)
+      return projects.value.length
+    } finally {
+      isLoading.value = false
+    }
   }
 
-  const importProjects = (nextProjects: CollagenProjectInstitution[]) => {
-    projects.value = nextProjects
-    saveProjects()
+  const setProjects = async (nextProjects: CollagenProjectInstitution[]) => {
+    applyProjects(nextProjects)
     return nextProjects.length
+  }
+
+  const importProjects = async (nextProjects: CollagenProjectInstitution[]) => {
+    try {
+      const importedProjects = await Promise.all(nextProjects.map(project => createCollagenProject(toCreatePayload(project))))
+      applyProjects(importedProjects)
+      markApiSuccess()
+      return importedProjects.length
+    } catch (error) {
+      markApiFailure(error)
+      applyProjects(nextProjects)
+      return nextProjects.length
+    }
   }
 
   const findProjectById = (id: string) => {
     return projects.value.find(project => project.id === id)
   }
 
-  const createProject = (project: Omit<CollagenProjectInstitution, 'id'>) => {
+  const createProject = async (project: Omit<CollagenProjectInstitution, 'id'>) => {
+    try {
+      const createdProject = await createCollagenProject(toCreatePayload(project))
+      replaceProject(createdProject)
+      markApiSuccess()
+      return createdProject
+    } catch (error) {
+      markApiFailure(error)
+    }
+
     const nextProject: CollagenProjectInstitution = {
       ...project,
       id: createProjectId()
     }
 
-    projects.value = [nextProject, ...projects.value]
-    saveProjects()
+    applyProjects([nextProject, ...projects.value])
     return nextProject
   }
 
-  const updateProject = (id: string, patch: Partial<CollagenProjectInstitution>) => {
+  const updateProject = async (id: string, patch: Partial<CollagenProjectInstitution>) => {
     const index = projects.value.findIndex(project => project.id === id)
     if (index === -1) return false
 
-    projects.value[index] = {
+    try {
+      const updatedProject = await updateCollagenProject(id, toUpdatePayload(patch))
+      replaceProject(updatedProject)
+      markApiSuccess()
+      return true
+    } catch (error) {
+      markApiFailure(error)
+    }
+
+    const nextProjects = [...projects.value]
+    nextProjects[index] = {
       ...projects.value[index],
       ...patch,
       id: projects.value[index].id
     }
-    saveProjects()
+    applyProjects(nextProjects)
     return true
   }
 
-  const archiveProject = (id: string) => {
-    return updateProject(id, {
+  const archiveProject = async (id: string) => {
+    try {
+      const archivedProject = await archiveCollagenProject(id)
+      replaceProject(archivedProject)
+      markApiSuccess()
+      return true
+    } catch (error) {
+      markApiFailure(error)
+    }
+
+    return await updateProject(id, {
       archivedAt: new Date().toISOString(),
       stage: '暂停',
       decision: '暂停观察'
     })
   }
 
-  const restoreProject = (id: string) => {
-    return updateProject(id, { archivedAt: undefined })
+  const restoreProject = async (id: string) => {
+    try {
+      const restoredProject = await restoreCollagenProject(id)
+      replaceProject(restoredProject)
+      markApiSuccess()
+      return true
+    } catch (error) {
+      markApiFailure(error)
+    }
+
+    return await updateProject(id, { archivedAt: undefined })
   }
 
-  const completeFollowUp = (id: string, result: string, nextAction: string) => {
+  const completeFollowUp = async (id: string, result: string, nextAction: string) => {
     const project = findProjectById(id)
     if (!project) return false
+
+    const fallbackResult = result.trim() || '已完成本次跟进'
+    const fallbackNextAction = nextAction.trim() || '待补充下一步动作'
+
+    try {
+      const updatedProject = await completeCollagenFollowUp(id, {
+        result: fallbackResult,
+        nextAction: fallbackNextAction
+      })
+      replaceProject(updatedProject)
+      markApiSuccess()
+      return true
+    } catch (error) {
+      markApiFailure(error)
+    }
 
     const log: CollagenProjectFollowUpLog = {
       id: createFollowUpLogId(),
       completedAt: new Date().toISOString(),
       owner: project.owner,
       completedAction: project.nextAction,
-      result: result.trim() || '已完成本次跟进',
-      nextAction: nextAction.trim() || '待补充下一步动作'
+      result: fallbackResult,
+      nextAction: fallbackNextAction
     }
 
-    return updateProject(id, {
+    return await updateProject(id, {
       nextAction: log.nextAction,
       followUpLogs: [log, ...(project.followUpLogs ?? [])]
     })
@@ -360,6 +502,9 @@ export const useCollagenProjectsStore = defineStore('collagenProjects', () => {
 
   return {
     projects,
+    isLoading,
+    apiAvailable,
+    lastError,
     activeProjects,
     archivedProjects,
     metrics,
@@ -367,6 +512,7 @@ export const useCollagenProjectsStore = defineStore('collagenProjects', () => {
     riskSummary,
     followUps,
     monthlyReview,
+    loadProjects,
     setProjects,
     importProjects,
     findProjectById,

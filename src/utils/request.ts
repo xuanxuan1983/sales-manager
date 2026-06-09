@@ -58,6 +58,9 @@ export const http = {
   put: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
     request.put<ApiResponse<T>, T>(url, data, config),
 
+  patch: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    request.patch<ApiResponse<T>, T>(url, data, config),
+
   delete: <T>(url: string, config?: AxiosRequestConfig) =>
     request.delete<ApiResponse<T>, T>(url, config)
 }

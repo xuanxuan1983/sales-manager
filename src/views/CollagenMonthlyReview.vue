@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useCollagenProjectsStore } from '@/stores/collagenProjects'
 import { exportCollagenMonthlyReview } from '@/utils/export'
 import type { CollagenProjectRiskLevel } from '@/types/collagenProject'
@@ -19,6 +19,10 @@ const riskClass = (risk: CollagenProjectRiskLevel) => ({
 const handleExportReview = () => {
   exportCollagenMonthlyReview(collagenProjectsStore.projects)
 }
+
+onMounted(() => {
+  collagenProjectsStore.loadProjects()
+})
 </script>
 
 <template>
@@ -106,7 +110,7 @@ const handleExportReview = () => {
           <div v-for="item in stageSummary" :key="item.stage" class="stage-row">
             <span class="stage-name">{{ item.stage }}</span>
             <div class="stage-bar">
-              <span :style="{ width: `${Math.max(item.count / metrics.total * 100, item.count ? 8 : 0)}%` }"></span>
+              <span :style="{ width: `${metrics.total ? Math.max(item.count / metrics.total * 100, item.count ? 8 : 0) : 0}%` }"></span>
             </div>
             <strong>{{ item.count }}</strong>
           </div>

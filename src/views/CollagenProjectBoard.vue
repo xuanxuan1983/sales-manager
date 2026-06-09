@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useCollagenProjectsStore } from '@/stores/collagenProjects'
 import { exportCollagenProjectsMonthlyReport } from '@/utils/export'
 import type { CollagenProjectRiskLevel, CollagenProjectStage } from '@/types/collagenProject'
@@ -20,6 +20,10 @@ const riskSummary = computed(() => collagenProjectsStore.riskSummary)
 const stageOptions: Array<'全部' | CollagenProjectStage> = ['全部', '待资料', '待启动会', '已发货', '30天追踪', '复购判断', '样板沉淀', '暂停']
 const riskOptions: Array<'全部' | CollagenProjectRiskLevel> = ['全部', '低', '中', '高']
 const archiveOptions: Array<'推进中' | '已归档' | '全部'> = ['推进中', '已归档', '全部']
+
+onMounted(() => {
+  collagenProjectsStore.loadProjects()
+})
 
 const riskClass = (risk: CollagenProjectRiskLevel) => ({
   'risk-low': risk === '低',
@@ -105,7 +109,7 @@ const handleResetSampleProjects = () => {
           <div v-for="item in stageSummary" :key="item.stage" class="stage-row">
             <span class="stage-name">{{ item.stage }}</span>
             <div class="stage-bar">
-              <span :style="{ width: `${Math.max(item.count / metrics.total * 100, item.count ? 8 : 0)}%` }"></span>
+              <span :style="{ width: `${metrics.total ? Math.max(item.count / metrics.total * 100, item.count ? 8 : 0) : 0}%` }"></span>
             </div>
             <strong>{{ item.count }}</strong>
           </div>
