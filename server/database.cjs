@@ -1,7 +1,9 @@
 const Database = require('better-sqlite3')
+const fs = require('fs')
 const path = require('path')
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, '../data/sales-manager.db')
+fs.mkdirSync(path.dirname(dbPath), { recursive: true })
 const db = new Database(dbPath)
 
 // 启用 WAL 模式，提高并发性能
@@ -254,6 +256,151 @@ function seedData() {
   `)
 
   products.forEach(p => insertProduct.run(p.id, p.name, p.spec, p.udi_di, p.manufacturer, p.shelf_life_months))
+
+  const collagenProjects = [
+    {
+      id: 'cp-001',
+      name: '北京颜研所',
+      city: '北京',
+      owner: '小赵',
+      source: '直营',
+      stage: '样板沉淀',
+      decision: '样板沉淀',
+      risk: '低',
+      score: 92,
+      shippedAt: '2026-05-08',
+      day30Status: '已复盘',
+      doctorTraining: '已完成',
+      cases: 8,
+      authorizedCases: 5,
+      contentCount: 18,
+      geoChange: 31,
+      nextAction: '输出招商案例一页纸'
+    },
+    {
+      id: 'cp-002',
+      name: '上海华美医疗美容',
+      city: '上海',
+      owner: '小张',
+      source: '渠道',
+      stage: '复购判断',
+      decision: '复购',
+      risk: '低',
+      score: 84,
+      shippedAt: '2026-05-16',
+      day30Status: '已复盘',
+      doctorTraining: '已完成',
+      cases: 6,
+      authorizedCases: 3,
+      contentCount: 12,
+      geoChange: 18,
+      nextAction: '确认第二批进货计划'
+    },
+    {
+      id: 'cp-003',
+      name: '杭州美颜连锁',
+      city: '杭州',
+      owner: '小李',
+      source: '经销商',
+      stage: '30天追踪',
+      decision: '续费陪跑',
+      risk: '中',
+      score: 73,
+      shippedAt: '2026-05-25',
+      day30Status: '进行中',
+      doctorTraining: '已完成',
+      cases: 4,
+      authorizedCases: 1,
+      contentCount: 7,
+      geoChange: 9,
+      nextAction: '补病例授权和内容审核'
+    },
+    {
+      id: 'cp-004',
+      name: '广州丽人诊所',
+      city: '广州',
+      owner: '小王',
+      source: '直营',
+      stage: '已发货',
+      decision: '二次启动',
+      risk: '高',
+      score: 58,
+      shippedAt: '2026-06-01',
+      day30Status: '未开始',
+      doctorTraining: '已排期',
+      cases: 1,
+      authorizedCases: 0,
+      contentCount: 0,
+      geoChange: 0,
+      nextAction: '重开老板和医生启动会'
+    },
+    {
+      id: 'cp-005',
+      name: '深圳美肤医院',
+      city: '深圳',
+      owner: '小刘',
+      source: '渠道',
+      stage: '待启动会',
+      decision: '普通维护',
+      risk: '中',
+      score: 66,
+      shippedAt: null,
+      day30Status: '未开始',
+      doctorTraining: '未排期',
+      cases: 0,
+      authorizedCases: 0,
+      contentCount: 0,
+      geoChange: 0,
+      nextAction: '补注册证和主诊医生资料'
+    },
+    {
+      id: 'cp-006',
+      name: '成都美丽坊',
+      city: '成都',
+      owner: '小陈',
+      source: '转介绍',
+      stage: '待资料',
+      decision: '暂停观察',
+      risk: '高',
+      score: 42,
+      shippedAt: null,
+      day30Status: '暂停',
+      doctorTraining: '未排期',
+      cases: 0,
+      authorizedCases: 0,
+      contentCount: 0,
+      geoChange: 0,
+      nextAction: '先核验机构资质和医生配合'
+    }
+  ]
+
+  const insertCollagenProject = db.prepare(`
+    INSERT OR IGNORE INTO collagen_projects (
+      id, name, city, owner, source, stage, decision, risk, score, shipped_at,
+      day30_status, doctor_training, cases, authorized_cases, content_count, geo_change, next_action
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  collagenProjects.forEach(project => insertCollagenProject.run(
+    project.id,
+    project.name,
+    project.city,
+    project.owner,
+    project.source,
+    project.stage,
+    project.decision,
+    project.risk,
+    project.score,
+    project.shippedAt,
+    project.day30Status,
+    project.doctorTraining,
+    project.cases,
+    project.authorizedCases,
+    project.contentCount,
+    project.geoChange,
+    project.nextAction
+  ))
 
   // 默认管理员账号 (密码: admin123)
   const bcrypt = require('bcryptjs')
