@@ -31,6 +31,9 @@ const bottomNavItems = [
 
 // 侧边栏保留完整导航
 const navItems = [
+  { path: '/collagen-projects', name: '胶原项目总看板', icon: 'dashboard' },
+  { path: '/collagen-projects/follow-ups', name: '胶原跟进清单', icon: 'list-check' },
+  { path: '/collagen-projects/monthly-review', name: '胶原月度复盘', icon: 'bar-chart' },
   { path: '/targets', name: '目标指挥中心', icon: 'target' },
   { path: '/indicators', name: '指标管理', icon: 'bar-chart' },
   { path: '/', name: '实时仪表盘', icon: 'bar-chart-3' },
@@ -49,7 +52,20 @@ const navItems = [
   { path: '/udi/adverse', name: '不良事件', icon: 'alert-triangle' }
 ]
 
-const currentNav = computed(() => navItems.find(n => n.path === route.path)?.name || '销售系统')
+const currentNav = computed(() => {
+  const exactMatch = navItems.find(n => n.path === route.path)
+  if (exactMatch) return exactMatch.name
+  if (route.path.startsWith('/collagen-projects')) return '胶原项目总看板'
+  return navItems.find(n => n.path === route.path)?.name || '销售系统'
+})
+
+const isNavActive = (path: string) => {
+  if (path === '/') return route.path === '/'
+  if (path === '/collagen-projects') {
+    return route.path === '/collagen-projects' || route.path === '/collagen-projects/new' || /^\/collagen-projects\/cp-/.test(route.path)
+  }
+  return route.path === path || route.path.startsWith(`${path}/`)
+}
 </script>
 
 <template>
@@ -82,7 +98,7 @@ const currentNav = computed(() => navItems.find(n => n.path === route.path)?.nam
           :key="item.path"
           :to="item.path"
           class="nav-link"
-          :class="{ active: route.path === item.path }"
+          :class="{ active: isNavActive(item.path) }"
           @click="sidebarOpen = false"
         >
           <span class="nav-text">{{ item.name }}</span>

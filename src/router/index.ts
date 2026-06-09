@@ -16,6 +16,36 @@ const router = createRouter({
             meta: { title: '销售仪表盘', icon: '📊' }
         },
         {
+            path: '/collagen-projects',
+            name: 'collagen-projects',
+            component: () => import('@/views/CollagenProjectBoard.vue'),
+            meta: { title: '胶原项目总看板', icon: 'dashboard' }
+        },
+        {
+            path: '/collagen-projects/follow-ups',
+            name: 'collagen-project-follow-ups',
+            component: () => import('@/views/CollagenFollowUps.vue'),
+            meta: { title: '胶原项目跟进清单', icon: 'dashboard' }
+        },
+        {
+            path: '/collagen-projects/monthly-review',
+            name: 'collagen-project-monthly-review',
+            component: () => import('@/views/CollagenMonthlyReview.vue'),
+            meta: { title: '胶原项目月度复盘', icon: 'dashboard' }
+        },
+        {
+            path: '/collagen-projects/new',
+            name: 'collagen-project-new',
+            component: () => import('@/views/CollagenProjectNew.vue'),
+            meta: { title: '新增胶原项目', icon: 'dashboard' }
+        },
+        {
+            path: '/collagen-projects/:id',
+            name: 'collagen-project-detail',
+            component: () => import('@/views/CollagenProjectDetail.vue'),
+            meta: { title: '胶原项目详情', icon: 'dashboard' }
+        },
+        {
             path: '/targets',
             name: 'targets',
             component: () => import('@/views/TargetManagement.vue'),

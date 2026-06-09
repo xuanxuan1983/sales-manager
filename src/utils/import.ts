@@ -3,6 +3,12 @@ import type {
   Order, Client, Product,
   ImportResult, ImportError, OrderStatus, ClientType, Channel, ClientLevel, ProductCategory
 } from '@/types/sales'
+import type {
+  CollagenProjectDecision,
+  CollagenProjectInstitution,
+  CollagenProjectRiskLevel,
+  CollagenProjectStage
+} from '@/types/collagenProject'
 
 // ============ Type-Safe Column Aliases ============
 type ColumnAlias = string[]
@@ -96,10 +102,27 @@ function parseLevel(level: string): ClientLevel {
 
 function parseCategory(category: string): ProductCategory {
   const map: Record<string, ProductCategory> = {
+    '胶原蛋白': 'collagen',
     '玻尿酸': 'hyaluronic', '肉毒素': 'botox', '设备': 'device', '光电': 'device',
     '耗材': 'consumable', '其他': 'other'
   }
   return map[category] || (category as ProductCategory) || 'other'
+}
+
+function parseCollagenStage(stage: string): CollagenProjectStage {
+  const allowed: CollagenProjectStage[] = ['线索', '待资料', '待启动会', '已签约', '已发货', '30天追踪', '复购判断', '样板沉淀', '暂停']
+  return allowed.includes(stage as CollagenProjectStage) ? stage as CollagenProjectStage : '线索'
+}
+
+function parseCollagenRisk(risk: string): CollagenProjectRiskLevel {
+  const normalized = risk.replace('风险', '')
+  if (normalized === '高' || normalized === '中' || normalized === '低') return normalized
+  return '中'
+}
+
+function parseCollagenDecision(decision: string): CollagenProjectDecision {
+  const allowed: CollagenProjectDecision[] = ['复购', '续费陪跑', '二次启动', '样板沉淀', '普通维护', '暂停观察']
+  return allowed.includes(decision as CollagenProjectDecision) ? decision as CollagenProjectDecision : '普通维护'
 }
 
 // ============ Row Validation ============
@@ -373,8 +396,60 @@ export async function parseProductsExcel(file: File): Promise<ImportResult<Produ
   return result
 }
 
+export async function parseCollagenProjectsExcel(file: File): Promise<ImportResult<CollagenProjectInstitution>> {
+  const result: ImportResult<CollagenProjectInstitution> = {
+    data: [],
+    summary: { total: 0, success: 0, failed: 0 },
+    errors: []
+  }
+
+  try {
+    const jsonData = await parseExcelFile(file)
+    if (jsonData.length === 0) return result
+
+    validateSchema(jsonData[0], ['机构名称', '阶段', '风险', '负责人'], '胶原项目')
+    result.summary.total = jsonData.length
+
+    jsonData.forEach((row, index) => {
+      const name = getStr(row, ['机构名称', '客户名称', 'name'])
+      if (!name) {
+        result.errors.push({ row: index + 1, field: 'name', value: '', message: '机构名称不能为空' })
+        result.summary.failed++
+        return
+      }
+
+      const project: CollagenProjectInstitution = {
+        id: getStr(row, ['项目ID', 'id']) || `cp-${generateId()}`,
+        name,
+        city: getStr(row, ['城市', 'city']) || '',
+        owner: getStr(row, ['负责人', 'owner', '销售']) || '',
+        source: getStr(row, ['来源', 'source', '线索来源']) || '导入',
+        stage: parseCollagenStage(getStr(row, ['阶段', 'stage', '当前阶段'])),
+        decision: parseCollagenDecision(getStr(row, ['决策', 'decision', '后续动作'])),
+        risk: parseCollagenRisk(getStr(row, ['风险', 'risk', '风险等级'])),
+        score: getVal(row, ['评分', 'score', '复购分']) || 0,
+        shippedAt: getStr(row, ['发货日期', 'shippedAt']) || undefined,
+        day30Status: (getStr(row, ['30天状态', 'day30Status']) as CollagenProjectInstitution['day30Status']) || '未开始',
+        doctorTraining: (getStr(row, ['医生培训', 'doctorTraining']) as CollagenProjectInstitution['doctorTraining']) || '未排期',
+        cases: getVal(row, ['病例数', 'cases']),
+        authorizedCases: getVal(row, ['授权病例数', 'authorizedCases']),
+        contentCount: getVal(row, ['内容数', 'contentCount']),
+        geoChange: getVal(row, ['GEO变化', 'geoChange']),
+        nextAction: getStr(row, ['下一步', 'nextAction']) || ''
+      }
+
+      result.data.push(project)
+      result.summary.success++
+    })
+  } catch (error) {
+    result.errors.push({ row: 0, field: 'file', value: file.name, message: String(error) })
+  }
+
+  return result
+}
+
 // ============ Template Generator ============
-export function generateTemplate(type: 'orders' | 'clients' | 'products' | 'salespeople' | 'distributors' | 'indicators' | 'headcount' | 'cityStats'): void {
+export function generateTemplate(type: 'orders' | 'clients' | 'products' | 'salespeople' | 'distributors' | 'indicators' | 'headcount' | 'cityStats' | 'collagenProjects'): void {
   let sampleData: Record<string, string | number>[] = []
 
   const templates: Record<string, Record<string, string | number>[]> = {
@@ -399,6 +474,10 @@ export function generateTemplate(type: 'orders' | 'clients' | 'products' | 'sale
     ],
     headcount: [
       { 年份: 2024, 月份: 1, 大区: '华东区', 计划编制: 25, 实际在岗: 23, 招聘中: 2, 离职数: 0, 奖金池: 80 }
+    ],
+    collagenProjects: [
+      { 机构名称: '北京颜研所', 城市: '北京', 来源: '直营', 阶段: '样板沉淀', 负责人: '小赵', 决策: '样板沉淀', 风险: '低', 评分: 92, 发货日期: '2026-05-08', '30天状态': '已复盘', 医生培训: '已完成', 病例数: 8, 授权病例数: 5, 内容数: 18, GEO变化: 31, 下一步: '输出招商案例一页纸' },
+      { 机构名称: '广州丽人诊所', 城市: '广州', 来源: '直营', 阶段: '已发货', 负责人: '小王', 决策: '二次启动', 风险: '高', 评分: 58, 发货日期: '2026-06-01', '30天状态': '未开始', 医生培训: '已排期', 病例数: 1, 授权病例数: 0, 内容数: 0, GEO变化: 0, 下一步: '重开老板和医生启动会' }
     ],
     cityStats: [
       { 城市: '上海', GDP: 47200, 人口: 24.8 }
