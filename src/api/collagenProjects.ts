@@ -25,6 +25,23 @@ export interface CompleteCollagenFollowUpPayload {
   nextAction: string
 }
 
+export type ImportCollagenProjectPayloadItem = CreateCollagenProjectPayload & {
+  id?: string
+  archivedAt?: string
+}
+
+export interface ImportCollagenProjectsPayload {
+  projects: ImportCollagenProjectPayloadItem[]
+  mode?: 'replace' | 'append'
+}
+
+export interface ImportCollagenProjectsResult {
+  list: CollagenProjectInstitution[]
+  total: number
+  imported: number
+  mode: 'replace' | 'append'
+}
+
 export const getCollagenProjects = (params?: CollagenProjectQuery) =>
   http.get<PaginatedResponse<CollagenProjectInstitution>>('/collagen-projects', { params })
 
@@ -33,6 +50,9 @@ export const getCollagenProjectDetail = (id: string) =>
 
 export const createCollagenProject = (data: CreateCollagenProjectPayload) =>
   http.post<CollagenProjectInstitution>('/collagen-projects', data)
+
+export const importCollagenProjects = (data: ImportCollagenProjectsPayload) =>
+  http.post<ImportCollagenProjectsResult>('/collagen-projects/import', data)
 
 export const updateCollagenProject = (id: string, data: UpdateCollagenProjectPayload) =>
   http.patch<CollagenProjectInstitution>(`/collagen-projects/${id}`, data)
@@ -45,3 +65,6 @@ export const restoreCollagenProject = (id: string) =>
 
 export const completeCollagenFollowUp = (id: string, data: CompleteCollagenFollowUpPayload) =>
   http.post<CollagenProjectInstitution>(`/collagen-projects/${id}/follow-ups`, data)
+
+export const clearCollagenProjects = () =>
+  http.delete<{ list: CollagenProjectInstitution[]; total: number }>('/collagen-projects')

@@ -51,6 +51,65 @@ const clampInteger = (value, min = 0, max = Number.MAX_SAFE_INTEGER) => {
 
 const pickAllowed = (value, allowed, fallback) => allowed.includes(value) ? value : fallback
 
+const normalizeProjectPayload = (payload, fallbackId) => {
+  const {
+    id = fallbackId,
+    archivedAt,
+    name,
+    city = '',
+    owner,
+    source = '',
+    stage = '线索',
+    decision = '普通维护',
+    risk = '中',
+    score = 0,
+    shippedAt,
+    day30Status = '未开始',
+    doctorTraining = '未排期',
+    cases = 0,
+    authorizedCases = 0,
+    contentCount = 0,
+    geoChange = 0,
+    nextAction = ''
+  } = payload
+
+  const normalizedCases = clampInteger(cases)
+
+  return {
+    id: String(id || fallbackId).trim(),
+    archivedAt: archivedAt || null,
+    name: String(name || '').trim(),
+    city: String(city).trim(),
+    owner: String(owner || '').trim(),
+    source: String(source).trim(),
+    stage: pickAllowed(stage, STAGES, '线索'),
+    decision: pickAllowed(decision, DECISIONS, '普通维护'),
+    risk: pickAllowed(risk, RISKS, '中'),
+    score: clampInteger(score, 0, 100),
+    shippedAt: shippedAt || null,
+    day30Status: pickAllowed(day30Status, DAY30_STATUSES, '未开始'),
+    doctorTraining: pickAllowed(doctorTraining, DOCTOR_TRAINING_STATUSES, '未排期'),
+    cases: normalizedCases,
+    authorizedCases: Math.min(normalizedCases, clampInteger(authorizedCases)),
+    contentCount: clampInteger(contentCount),
+    geoChange: Math.round(Number(geoChange) || 0),
+    nextAction: String(nextAction).trim()
+  }
+}
+
+const insertProject = db.prepare(`
+  INSERT INTO collagen_projects (
+    id, archived_at, name, city, owner, source, stage, decision, risk, score, shipped_at,
+    day30_status, doctor_training, cases, authorized_cases, content_count, geo_change, next_action
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`)
+
+const listAllProjects = () => db.prepare(`
+  SELECT * FROM collagen_projects
+  ORDER BY archived_at IS NOT NULL ASC, updated_at DESC, created_at DESC
+`).all().map(toProject)
+
 const getProjectWithLogs = id => {
   const project = db.prepare('SELECT * FROM collagen_projects WHERE id = ?').get(id)
   if (!project) return null
@@ -129,6 +188,106 @@ router.get('/', (req, res) => {
     })
   } catch (error) {
     console.error('List collagen projects error:', error)
+    res.status(500).json({ code: 500, message: '服务器错误', data: null })
+  }
+})
+
+// POST /api/collagen-projects/import - 批量导入项目
+router.post('/import', (req, res) => {
+  try {
+    const projects = Array.isArray(req.body.projects) ? req.body.projects : []
+    const mode = req.body.mode === 'append' ? 'append' : 'replace'
+
+    if (!projects.length) {
+      return res.json({ code: 400, message: '请提供要导入的项目数据', data: null })
+    }
+
+    const normalizedProjects = projects.map((project, index) => normalizeProjectPayload(project, project.id || createId('cp')))
+    const invalidProject = normalizedProjects.find(project => !project.name || !project.owner)
+    const ids = new Set()
+    const duplicatedProject = normalizedProjects.find(project => {
+      if (ids.has(project.id)) return true
+      ids.add(project.id)
+      return false
+    })
+
+    if (invalidProject) {
+      return res.json({ code: 400, message: '机构名称和负责人必填', data: null })
+    }
+
+    if (duplicatedProject) {
+      return res.json({ code: 400, message: `项目ID重复：${duplicatedProject.id}`, data: null })
+    }
+
+    const transaction = db.transaction(() => {
+      if (mode === 'replace') {
+        db.prepare('DELETE FROM collagen_follow_up_logs').run()
+        db.prepare('DELETE FROM collagen_projects').run()
+      }
+
+      normalizedProjects.forEach(project => {
+        insertProject.run(
+          project.id,
+          project.archivedAt,
+          project.name,
+          project.city,
+          project.owner,
+          project.source,
+          project.stage,
+          project.decision,
+          project.risk,
+          project.score,
+          project.shippedAt,
+          project.day30Status,
+          project.doctorTraining,
+          project.cases,
+          project.authorizedCases,
+          project.contentCount,
+          project.geoChange,
+          project.nextAction
+        )
+      })
+    })
+
+    transaction()
+
+    const list = listAllProjects()
+    res.json({
+      code: 200,
+      message: '导入成功',
+      data: {
+        list,
+        total: list.length,
+        imported: normalizedProjects.length,
+        mode
+      }
+    })
+  } catch (error) {
+    console.error('Import collagen projects error:', error)
+    res.status(500).json({ code: 500, message: '服务器错误', data: null })
+  }
+})
+
+// DELETE /api/collagen-projects - 清空项目
+router.delete('/', (req, res) => {
+  try {
+    const transaction = db.transaction(() => {
+      db.prepare('DELETE FROM collagen_follow_up_logs').run()
+      db.prepare('DELETE FROM collagen_projects').run()
+    })
+
+    transaction()
+
+    res.json({
+      code: 200,
+      message: '已清空胶原项目',
+      data: {
+        list: [],
+        total: 0
+      }
+    })
+  } catch (error) {
+    console.error('Clear collagen projects error:', error)
     res.status(500).json({ code: 500, message: '服务器错误', data: null })
   }
 })
