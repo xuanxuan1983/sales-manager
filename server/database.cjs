@@ -158,6 +158,73 @@ function initDatabase() {
     )
   `)
 
+  // 胶原项目表
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collagen_projects (
+      id TEXT PRIMARY KEY,
+      archived_at DATETIME,
+      name TEXT NOT NULL,
+      city TEXT,
+      owner TEXT NOT NULL,
+      source TEXT,
+      stage TEXT NOT NULL CHECK(stage IN ('线索', '待资料', '待启动会', '已签约', '已发货', '30天追踪', '复购判断', '样板沉淀', '暂停')),
+      decision TEXT NOT NULL CHECK(decision IN ('复购', '续费陪跑', '二次启动', '样板沉淀', '普通维护', '暂停观察')),
+      risk TEXT NOT NULL CHECK(risk IN ('低', '中', '高')),
+      score INTEGER DEFAULT 0 CHECK(score >= 0 AND score <= 100),
+      shipped_at TEXT,
+      day30_status TEXT NOT NULL CHECK(day30_status IN ('未开始', '进行中', '已复盘', '暂停')),
+      doctor_training TEXT NOT NULL CHECK(doctor_training IN ('未排期', '已排期', '已完成')),
+      cases INTEGER DEFAULT 0,
+      authorized_cases INTEGER DEFAULT 0,
+      content_count INTEGER DEFAULT 0,
+      geo_change INTEGER DEFAULT 0,
+      next_action TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_collagen_projects_owner ON collagen_projects(owner);
+    CREATE INDEX IF NOT EXISTS idx_collagen_projects_stage ON collagen_projects(stage);
+    CREATE INDEX IF NOT EXISTS idx_collagen_projects_risk ON collagen_projects(risk);
+    CREATE INDEX IF NOT EXISTS idx_collagen_projects_archived_at ON collagen_projects(archived_at);
+  `)
+
+  // 胶原项目跟进记录表
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collagen_follow_up_logs (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      owner TEXT NOT NULL,
+      completed_action TEXT NOT NULL,
+      result TEXT NOT NULL,
+      next_action TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES collagen_projects(id) ON DELETE CASCADE
+    )
+  `)
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_collagen_follow_up_logs_project_id ON collagen_follow_up_logs(project_id);
+    CREATE INDEX IF NOT EXISTS idx_collagen_follow_up_logs_completed_at ON collagen_follow_up_logs(completed_at);
+    CREATE INDEX IF NOT EXISTS idx_collagen_follow_up_logs_owner ON collagen_follow_up_logs(owner);
+  `)
+
+  // 胶原项目导入批次表
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collagen_project_import_batches (
+      id TEXT PRIMARY KEY,
+      filename TEXT,
+      imported_by TEXT,
+      total_rows INTEGER DEFAULT 0,
+      success_rows INTEGER DEFAULT 0,
+      failed_rows INTEGER DEFAULT 0,
+      imported_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
   console.log('✅ Database initialized')
 }
 
