@@ -16,6 +16,21 @@ const filteredProjects = computed(() => {
 const metrics = computed(() => collagenProjectsStore.metrics)
 const stageSummary = computed(() => collagenProjectsStore.stageSummary)
 const riskSummary = computed(() => collagenProjectsStore.riskSummary)
+const syncStatus = computed(() => {
+  if (collagenProjectsStore.isLoading) {
+    return { label: '同步中', detail: '正在读取后端数据', className: 'loading' }
+  }
+
+  if (collagenProjectsStore.apiAvailable) {
+    return { label: '后端同步', detail: '数据已连接 SQLite API', className: 'online' }
+  }
+
+  return {
+    label: '本地缓存',
+    detail: collagenProjectsStore.lastError || '后端暂不可用，当前使用浏览器缓存',
+    className: 'offline'
+  }
+})
 
 const stageOptions: Array<'全部' | CollagenProjectStage> = ['全部', '待资料', '待启动会', '已发货', '30天追踪', '复购判断', '样板沉淀', '暂停']
 const riskOptions: Array<'全部' | CollagenProjectRiskLevel> = ['全部', '低', '中', '高']
@@ -49,6 +64,10 @@ const handleResetSampleProjects = () => {
       <div>
         <p class="eyebrow">Collagen Project Control</p>
         <h2>胶原针剂多机构项目总看板</h2>
+        <div class="sync-status" :class="syncStatus.className">
+          <span>{{ syncStatus.label }}</span>
+          <small>{{ syncStatus.detail }}</small>
+        </div>
       </div>
       <div class="summary-actions">
         <select v-model="stageFilter" class="filter-select">
@@ -211,6 +230,42 @@ const handleResetSampleProjects = () => {
 .summary-band h2 {
   font-size: 24px;
   font-weight: 700;
+}
+
+.sync-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #f5f5f7;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.sync-status span {
+  font-weight: 700;
+}
+
+.sync-status small {
+  color: inherit;
+  font-size: 12px;
+}
+
+.sync-status.online {
+  background: #ecf8f1;
+  color: #1f7a3f;
+}
+
+.sync-status.loading {
+  background: #eef5ff;
+  color: var(--accent);
+}
+
+.sync-status.offline {
+  background: #fff4e5;
+  color: #9a5a00;
 }
 
 .summary-actions {
