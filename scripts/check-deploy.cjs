@@ -22,6 +22,7 @@ const checkPackageScripts = () => {
     'build',
     'api',
     'backup:db',
+    'list:db-backups',
     'restore:db',
     'check:deploy',
     'check:local',
