@@ -173,10 +173,13 @@ FRONTEND_URL=http://127.0.0.1:5175 API_BASE_URL=http://127.0.0.1:3001/api npm ru
 
 ```bash
 npm run test:collagen-api
+npm run test:local-stack
 npm run build
 ```
 
 `test:collagen-api` 会自动启动临时 API 和临时 SQLite，验证胶原项目的种子数据、新建、更新、跟进、归档、恢复、批量导入、重复 ID 校验和清空。
+
+`test:local-stack` 会自动启动临时 API、临时 SQLite 和 Vite 前端，再调用 `check:local` 验证前端页面、API 健康检查和胶原项目接口，适合排查本地端口或服务未启动问题。
 
 ## 📞 联系
 
