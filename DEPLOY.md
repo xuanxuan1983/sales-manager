@@ -71,6 +71,8 @@ node server/index.cjs
 
 如果前端和 API 不在同一个域名，必须配置 `VITE_API_BASE_URL`。未配置时，生产前端会默认请求同源 `/api`。
 
+Vercel 的 SPA 兜底路由已排除 `/api/*`，所以同域部署或反向代理 API 时，`/api/health`、`/api/collagen-projects` 等接口不会被重写成前端页面。如果 API 部署在 Railway / Render 等独立域名，请继续在 Vercel 中配置 `VITE_API_BASE_URL` 指向真实后端。
+
 ## 4. 快速验证
 
 部署完成后访问：
