@@ -54,6 +54,9 @@ npm run api      # Express + SQLite API，默认 http://localhost:3001/api
 
 # 如需旧 Mock 调试
 npm run dev:mock
+
+# 前端和 API 启动后，可做一次本地健康检查
+npm run check:local
 ```
 
 ### 环境变量
@@ -65,6 +68,20 @@ npm run dev:mock
 | `VITE_API_BASE_URL` | `http://localhost:3001/api` | 前端请求的 API 地址 |
 | `PORT` | `3001` | Express API 端口 |
 | `DB_PATH` | `./data/sales-manager.db` | SQLite 数据库路径 |
+
+### 本地连通性检查
+
+如果浏览器提示 `127.0.0.1 拒绝建立连接`，先确认 `npm run dev:full` 正在运行，再执行：
+
+```bash
+npm run check:local
+```
+
+默认检查 `http://127.0.0.1:5173` 和 `http://127.0.0.1:3001/api`。如果前端或 API 使用了其他端口，可临时指定：
+
+```bash
+FRONTEND_URL=http://127.0.0.1:5175 API_BASE_URL=http://127.0.0.1:3001/api npm run check:local
+```
 
 ## 📦 部署
 
