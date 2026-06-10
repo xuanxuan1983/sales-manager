@@ -169,6 +169,18 @@ FRONTEND_URL=http://127.0.0.1:5175 API_BASE_URL=http://127.0.0.1:3001/api npm ru
 - 「数据导入」里的胶原项目导入会批量替换后端项目池；「清空数据」会清空后端胶原项目。
 - 重要数据仍建议定期用「导出月报」或「导出复盘」备份。
 
+本地 SQLite 可用以下命令生成数据库快照，默认保存到 `backups/`，该目录不会提交到 GitHub：
+
+```bash
+npm run backup:db
+```
+
+如果使用了自定义数据库路径或备份目录：
+
+```bash
+DB_PATH=/path/to/sales-manager.db BACKUP_DIR=/path/to/backups npm run backup:db
+```
+
 ### 回归验证
 
 ```bash
