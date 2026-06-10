@@ -26,5 +26,8 @@ jobs:
       - name: Run collagen API smoke test
         run: npm run test:collagen-api
 
+      - name: Run local stack smoke test
+        run: npm run test:local-stack
+
       - name: Build
         run: npm run build
