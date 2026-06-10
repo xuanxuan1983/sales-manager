@@ -4,9 +4,11 @@ import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse 
 import { ElMessage } from 'element-plus'
 import type { ApiResponse } from '../../api/types'
 
+const defaultApiBaseUrl = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api'
+
 // 创建 axios 实例
 const request: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || defaultApiBaseUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

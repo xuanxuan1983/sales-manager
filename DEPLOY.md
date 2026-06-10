@@ -69,6 +69,8 @@ node server/index.cjs
 
 可参考 `.env.example`。生产环境请优先在 Vercel / Railway / Render 的环境变量面板中配置真实后端地址，不要把临时占位地址写入仓库。
 
+如果前端和 API 不在同一个域名，必须配置 `VITE_API_BASE_URL`。未配置时，生产前端会默认请求同源 `/api`。
+
 ## 4. 快速验证
 
 部署完成后访问：
