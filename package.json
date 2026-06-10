@@ -9,6 +9,7 @@
     "check:local": "node scripts/check-local.cjs",
     "preview": "vite preview",
     "test:collagen-api": "node scripts/smoke-collagen-api.cjs",
+    "test:local-stack": "node scripts/smoke-local-stack.cjs",
     "api": "node server/index.cjs",
     "mock": "node mock-server/server.js",
     "dev:full": "concurrently \"npm run api\" \"npm run dev\"",
