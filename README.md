@@ -197,6 +197,14 @@ npm run restore:db -- backups/sales-manager-YYYYMMDD-HHMMSS.db
 
 ### 回归验证
 
+完整验证可直接运行：
+
+```bash
+npm run verify
+```
+
+等价于依次运行：
+
 ```bash
 npm run test:collagen-api
 npm run test:db-backup-restore
