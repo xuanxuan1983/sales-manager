@@ -18,7 +18,17 @@ const readText = relativePath => fs.readFileSync(path.join(rootDir, relativePath
 
 const checkPackageScripts = () => {
   const pkg = JSON.parse(readText('package.json'))
-  const requiredScripts = ['build', 'api', 'check:deploy', 'check:local', 'test:collagen-api', 'test:local-stack']
+  const requiredScripts = [
+    'build',
+    'api',
+    'backup:db',
+    'restore:db',
+    'check:deploy',
+    'check:local',
+    'test:collagen-api',
+    'test:db-backup-restore',
+    'test:local-stack'
+  ]
   const missing = requiredScripts.filter(script => !pkg.scripts?.[script])
 
   if (missing.length > 0) {
