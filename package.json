@@ -14,6 +14,7 @@
     "test:local-stack": "node scripts/smoke-local-stack.cjs",
     "api": "node server/index.cjs",
     "backup:db": "node scripts/backup-db.cjs",
+    "list:db-backups": "node scripts/list-db-backups.cjs",
     "restore:db": "node scripts/restore-db.cjs",
     "mock": "node mock-server/server.js",
     "dev:full": "concurrently \"npm run api\" \"npm run dev\"",

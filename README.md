@@ -181,6 +181,12 @@ npm run backup:db
 DB_PATH=/path/to/sales-manager.db BACKUP_DIR=/path/to/backups npm run backup:db
 ```
 
+查看可恢复的备份列表：
+
+```bash
+npm run list:db-backups
+```
+
 恢复备份前请先停止正在运行的 API 服务，然后指定备份文件：
 
 ```bash
