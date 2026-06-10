@@ -87,6 +87,10 @@ FRONTEND_URL=http://127.0.0.1:5175 API_BASE_URL=http://127.0.0.1:3001/api npm ru
 
 详见 [DEPLOY.md](./DEPLOY.md)
 
+## 🧭 运维手册
+
+日常启动、连通性排查、数据库备份恢复、完整验证和部署前检查见 [OPERATIONS.md](./OPERATIONS.md)。
+
 ## 📝 数据说明
 
 当前展示数据为**胶原蛋白产品线**演示数据：
