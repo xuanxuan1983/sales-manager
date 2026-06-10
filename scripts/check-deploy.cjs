@@ -21,6 +21,7 @@ const checkPackageScripts = () => {
   const requiredScripts = [
     'build',
     'api',
+    'verify',
     'backup:db',
     'list:db-backups',
     'restore:db',
