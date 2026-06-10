@@ -65,9 +65,9 @@ node server/index.cjs
 | 环境 | 变量名 | 值 |
 |-----|--------|-----|
 | 开发 | VITE_API_BASE_URL | http://localhost:3001/api |
-| 生产 | VITE_API_BASE_URL | https://你的后端地址/api |
+| 生产 | VITE_API_BASE_URL | https://your-api.example.com/api |
 
-可参考 `.env.example`，并在 `.env.production` 中替换真实后端地址。
+可参考 `.env.example`。生产环境请优先在 Vercel / Railway / Render 的环境变量面板中配置真实后端地址，不要把临时占位地址写入仓库。
 
 ## 4. 快速验证
 
