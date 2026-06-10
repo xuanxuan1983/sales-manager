@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "check:deploy": "node scripts/check-deploy.cjs",
     "check:local": "node scripts/check-local.cjs",
     "preview": "vite preview",
     "test:collagen-api": "node scripts/smoke-collagen-api.cjs",
