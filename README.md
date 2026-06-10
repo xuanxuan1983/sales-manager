@@ -36,7 +36,7 @@
 | 前端 | Vue 3 + Vite + TypeScript + Element Plus |
 | 状态管理 | Pinia |
 | 图表 | ECharts |
-| 后端 | Express + json-server (Mock) |
+| 后端 | Express + SQLite |
 | 部署 | Vercel + Railway |
 
 ## 🏃 本地开发
@@ -45,12 +45,15 @@
 # 安装依赖
 npm install
 
-# 启动前端 + Mock 后端
+# 启动前端 + 真实 API 后端
 npm run dev:full
 
 # 或分别启动
 npm run dev      # 前端
-npm run mock     # 后端
+npm run api      # Express + SQLite API，默认 http://localhost:3001/api
+
+# 如需旧 Mock 调试
+npm run dev:mock
 ```
 
 ## 📦 部署
@@ -131,12 +134,22 @@ npm run mock     # 后端
 
 ### 数据保存说明
 
-当前胶原项目数据保存在浏览器 `localStorage` 中：
+当前胶原项目数据优先保存在本地 SQLite 数据库中：
 
-- 刷新页面不会丢失。
-- 换浏览器、清理浏览器数据或换电脑后，本地数据不会自动同步。
-- 重要数据建议定期用「导出月报」或「导出复盘」备份。
-- 后续可升级为后端数据库，实现多人协作和账号权限。
+- 默认数据库路径：`data/sales-manager.db`，首次启动会自动创建目录和种子数据。
+- 前端默认连接 `http://localhost:3001/api`，看板标题下会显示「后端同步 / 同步中 / 本地缓存」状态。
+- 如果后端暂不可用，前端会退回浏览器 `localStorage`，避免页面完全不可用。
+- 「数据导入」里的胶原项目导入会批量替换后端项目池；「清空数据」会清空后端胶原项目。
+- 重要数据仍建议定期用「导出月报」或「导出复盘」备份。
+
+### 回归验证
+
+```bash
+npm run test:collagen-api
+npm run build
+```
+
+`test:collagen-api` 会自动启动临时 API 和临时 SQLite，验证胶原项目的种子数据、新建、更新、跟进、归档、恢复、批量导入、重复 ID 校验和清空。
 
 ## 📞 联系
 

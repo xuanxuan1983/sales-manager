@@ -8,8 +8,10 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "test:collagen-api": "node scripts/smoke-collagen-api.cjs",
+    "api": "node server/index.cjs",
     "mock": "node mock-server/server.js",
-    "dev:full": "concurrently \"npm run mock\" \"npm run dev\""
+    "dev:full": "concurrently \"npm run api\" \"npm run dev\"",
+    "dev:mock": "concurrently \"npm run mock\" \"npm run dev\""
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
