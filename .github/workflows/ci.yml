@@ -29,6 +29,9 @@ jobs:
       - name: Run local stack smoke test
         run: npm run test:local-stack
 
+      - name: Run database backup restore smoke test
+        run: npm run test:db-backup-restore
+
       - name: Build
         run: npm run build
 

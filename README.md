@@ -193,12 +193,15 @@ npm run restore:db -- backups/sales-manager-YYYYMMDD-HHMMSS.db
 
 ```bash
 npm run test:collagen-api
+npm run test:db-backup-restore
 npm run test:local-stack
 npm run build
 npm run check:deploy
 ```
 
 `test:collagen-api` 会自动启动临时 API 和临时 SQLite，验证胶原项目的种子数据、新建、更新、跟进、归档、恢复、批量导入、重复 ID 校验和清空。
+
+`test:db-backup-restore` 会用临时 SQLite 验证备份、删除、恢复和恢复前安全备份，避免真实业务数据库被测试改动。
 
 `test:local-stack` 会自动启动临时 API、临时 SQLite 和 Vite 前端，再调用 `check:local` 验证前端页面、API 健康检查和胶原项目接口，适合排查本地端口或服务未启动问题。
 
