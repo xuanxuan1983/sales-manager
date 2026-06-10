@@ -10,6 +10,7 @@
     "check:local": "node scripts/check-local.cjs",
     "preview": "vite preview",
     "test:collagen-api": "node scripts/smoke-collagen-api.cjs",
+    "test:db-backup-restore": "node scripts/smoke-db-backup-restore.cjs",
     "test:local-stack": "node scripts/smoke-local-stack.cjs",
     "api": "node server/index.cjs",
     "backup:db": "node scripts/backup-db.cjs",
