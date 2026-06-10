@@ -56,6 +56,16 @@ npm run api      # Express + SQLite API，默认 http://localhost:3001/api
 npm run dev:mock
 ```
 
+### 环境变量
+
+可复制 `.env.example` 作为本地配置参考。
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `VITE_API_BASE_URL` | `http://localhost:3001/api` | 前端请求的 API 地址 |
+| `PORT` | `3001` | Express API 端口 |
+| `DB_PATH` | `./data/sales-manager.db` | SQLite 数据库路径 |
+
 ## 📦 部署
 
 详见 [DEPLOY.md](./DEPLOY.md)

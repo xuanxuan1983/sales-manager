@@ -67,6 +67,8 @@ node server/index.cjs
 | 开发 | VITE_API_BASE_URL | http://localhost:3001/api |
 | 生产 | VITE_API_BASE_URL | https://你的后端地址/api |
 
+可参考 `.env.example`，并在 `.env.production` 中替换真实后端地址。
+
 ## 4. 快速验证
 
 部署完成后访问：
