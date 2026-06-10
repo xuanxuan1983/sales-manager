@@ -31,3 +31,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Run deploy preflight check
+        run: npm run check:deploy

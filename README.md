@@ -175,11 +175,14 @@ FRONTEND_URL=http://127.0.0.1:5175 API_BASE_URL=http://127.0.0.1:3001/api npm ru
 npm run test:collagen-api
 npm run test:local-stack
 npm run build
+npm run check:deploy
 ```
 
 `test:collagen-api` 会自动启动临时 API 和临时 SQLite，验证胶原项目的种子数据、新建、更新、跟进、归档、恢复、批量导入、重复 ID 校验和清空。
 
 `test:local-stack` 会自动启动临时 API、临时 SQLite 和 Vite 前端，再调用 `check:local` 验证前端页面、API 健康检查和胶原项目接口，适合排查本地端口或服务未启动问题。
+
+`check:deploy` 会在构建后检查 Vercel 配置、生产环境文件和 `dist/` 产物，避免 `/api/*` 被 SPA 兜底吞掉，或把占位 API 地址打进生产包。
 
 ## 📞 联系
 
