@@ -75,7 +75,7 @@ const isNavActive = (path: string) => {
       <button class="menu-toggle" @click="sidebarOpen = !sidebarOpen">
         <span class="hamburger" :class="{ open: sidebarOpen }"></span>
       </button>
-      <h2 class="mobile-brand">DermAnalytics</h2>
+      <h2 class="mobile-brand">医美销售追溯</h2>
       <div class="mobile-actions">
         <button class="btn-icon">🔔</button>
       </div>
@@ -90,7 +90,7 @@ const isNavActive = (path: string) => {
 
     <!-- Sidebar (Desktop + Mobile Drawer) -->
     <nav class="sidebar" :class="{ open: sidebarOpen, mobile: isMobile }">
-      <h2 class="brand">DermAnalytics <span class="version">v2</span></h2>
+      <h2 class="brand">医美销售追溯 <span class="version">v2</span></h2>
       
       <div class="nav-menu">
         <router-link 
