@@ -56,9 +56,9 @@ function formatGS1Date(yyMMdd: string): string {
 /**
  * 解析 GS1 条码内容
  * 支持格式:
- * 1. FNC1 分隔: ]d20106973894820001102601151728011410TXF-A21001
- * 2. 括号格式: (01)6973894820001(11)260115(17)280114(10)TXF-A(21)001
- * 3. 纯数字 + GS 分隔符: 016973894820001112601151728011410TXF-A\x1d21001
+ * 1. FNC1 分隔: ]d20106973894820001102601151728011410GEN-A21001
+ * 2. 括号格式: (01)6973894820001(11)260115(17)280114(10)GEN-A(21)001
+ * 3. 纯数字 + GS 分隔符: 016973894820001112601151728011410GEN-A\x1d21001
  */
 export function parseGS1(content: string): GS1ParseResult | null {
   const result: Partial<GS1ParseResult> = {
@@ -122,7 +122,7 @@ export function parseGS1(content: string): GS1ParseResult | null {
 }
 
 /**
- * 解析括号格式: (01)6973894820001(11)260115(17)280114(10)TXF-A(21)001
+ * 解析括号格式: (01)6973894820001(11)260115(17)280114(10)GEN-A(21)001
  */
 function parseParenthesesFormat(content: string): Record<string, string> {
   const result: Record<string, string> = {}
@@ -139,7 +139,7 @@ function parseParenthesesFormat(content: string): Record<string, string> {
 }
 
 /**
- * 解析 FNC1 格式: ]d2016973894820001112601151728011410TXF-A1d21001
+ * 解析 FNC1 格式: ]d2016973894820001112601151728011410GEN-A1d21001
  */
 function parseFNC1Format(content: string): Record<string, string> {
   const result: Record<string, string> = {}
@@ -269,7 +269,7 @@ export function mockScan(productId: string = 'P001'): string {
     P003: '06973894820003'
   }
   const di = diMap[productId] || '06973894820001'
-  const batchNo = `TXF-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-A`
+  const batchNo = `GEN-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-A`
   const serialNo = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')
   const prodDate = new Date().toISOString().slice(2, 10).replace(/-/g, '')
   const expDate = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().slice(2, 10).replace(/-/g, '')

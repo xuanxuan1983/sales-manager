@@ -20,8 +20,8 @@ const inboundForm = ref({
 })
 
 const productOptions = [
-  { value: 'P001', label: '天新福胶原蛋白植入剂 1ml', udiDi: '6973894820001' },
-  { value: 'P002', label: '天新福胶原蛋白植入剂 0.5ml', udiDi: '6973894820002' }
+  { value: 'P001', label: '胶原蛋白植入剂 1ml', udiDi: '6973894820001' },
+  { value: 'P002', label: '胶原蛋白植入剂 0.5ml', udiDi: '6973894820002' }
 ]
 
 // 扫码模式切换
@@ -38,7 +38,7 @@ const handleScan = () => {
 
   try {
     // GS1 应用标识符解析
-    // (01)6973894820001(11)260115(17)280114(10)TXF-A(21)001
+    // (01)6973894820001(11)260115(17)280114(10)GEN-A(21)001
     const gs1 = parseGS1(content)
     if (gs1) {
       inboundForm.value.udiDi = gs1.di
@@ -225,7 +225,7 @@ const getProductLabel = (productId: string) => {
             <el-row :gutter="16">
               <el-col :span="12">
                 <el-form-item label="生产批号">
-                  <el-input v-model="inboundForm.batchNo" placeholder="如: TXF-20260115-A" />
+                  <el-input v-model="inboundForm.batchNo" placeholder="如: GEN-20260115-A" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">

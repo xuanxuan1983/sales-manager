@@ -234,18 +234,18 @@ function initDatabase() {
 function seedData() {
   const products = [
     {
-      id: 'P001', name: '天新福胶原蛋白植入剂', spec: '1ml/支',
-      udi_di: '06973894820001', manufacturer: '天新福（北京）医疗器材股份有限公司',
+      id: 'P001', name: '胶原蛋白植入剂', spec: '1ml/支',
+      udi_di: '06973894820001', manufacturer: '示例医疗器械生产企业',
       shelf_life_months: 24
     },
     {
-      id: 'P002', name: '天新福胶原蛋白植入剂', spec: '2ml/支',
-      udi_di: '06973894820002', manufacturer: '天新福（北京）医疗器材股份有限公司',
+      id: 'P002', name: '胶原蛋白植入剂', spec: '2ml/支',
+      udi_di: '06973894820002', manufacturer: '示例医疗器械生产企业',
       shelf_life_months: 24
     },
     {
-      id: 'P003', name: '天新福胶原蛋白水光', spec: '5ml/支',
-      udi_di: '06973894820003', manufacturer: '天新福（北京）医疗器材股份有限公司',
+      id: 'P003', name: '胶原蛋白水光', spec: '5ml/支',
+      udi_di: '06973894820003', manufacturer: '示例医疗器械生产企业',
       shelf_life_months: 18
     }
   ]

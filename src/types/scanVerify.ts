@@ -70,7 +70,7 @@ export interface InstitutionVerifyRecord {
   address?: string
   contact?: string
   phone?: string
-  isAuthorized: boolean     // 是否官方授权
+  isAuthorized: boolean     // 是否已授权
   authorizedProducts: string[] // 授权产品列表
   verifyStatus: 'verified' | 'unverified' | 'suspended'
   queryCount: number
@@ -140,7 +140,7 @@ export interface ScanResultDisplay {
   checks: VerifyCheck[]
   /** 动态防伪水印（每次查询生成唯一） */
   watermark?: {
-    token: string      // 防伪令牌（如：TXF-20260427-A7B3）
+    token: string      // 防伪令牌（如：GEN-20260427-A7B3）
     timestamp: string  // 查询时间戳
     qrData?: string    // 防伪二维码数据
     gradient: string   // 渐变色标识

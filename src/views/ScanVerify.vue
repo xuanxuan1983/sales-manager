@@ -168,7 +168,7 @@ const quickActions = [
           </div>
           <div class="result-subtitle">
             <template v-if="result.isAuthentic">
-              <span v-if="result.queryCount === 1">为本公司生产经营的正规产品，请放心使用</span>
+              <span v-if="result.queryCount === 1">为系统记录的合规产品，请按机构流程使用</span>
               <span v-else>该序列号已被查询 {{ result.queryCount }} 次</span>
             </template>
             <template v-else>
@@ -183,9 +183,9 @@ const quickActions = [
             <div class="watermark-content">
               <div class="seal-area">
                 <div class="seal-circle">
-                  <span class="seal-text">天新福正品</span>
+                  <span class="seal-text">正品验证</span>
                   <span class="seal-token">{{ result.watermark.token }}</span>
-                  <span class="seal-sub">官方验证</span>
+                  <span class="seal-sub">平台验证</span>
                 </div>
               </div>
               <div class="watermark-info">
@@ -204,7 +204,7 @@ const quickActions = [
               </div>
             </div>
             <div class="watermark-hint">
-              🔒 此防伪标识为动态生成，截图无效。请通过官方渠道重新扫码验证。
+              🔒 此防伪标识为动态生成，截图无效。请通过平台入口重新扫码验证。
             </div>
           </div>
         </div>
@@ -259,11 +259,7 @@ const quickActions = [
         <!-- 异常提示 -->
         <div class="alert-box danger" v-if="!result.isAuthentic">
           <div class="alert-title">⚠️ 异常提醒</div>
-          <p>该序列号不存在，请核实是否输入有误，或联系销售商家确认。</p>
-          <div class="alert-contact">
-            <span>客服投诉电话：</span>
-            <a href="tel:010-80126996" class="phone">010-69702567</a>
-          </div>
+          <p>该序列号不存在，请核实是否输入有误，或联系销售商家、平台管理员确认。</p>
         </div>
 
         <!-- 操作按钮 -->
@@ -282,7 +278,7 @@ const quickActions = [
     <div v-show="activeTab === 'institution'" class="tab-content">
       <div class="inst-search-card">
         <h3>🏥 正规合作机构查询</h3>
-        <p class="inst-desc">查询官方授权的合作医疗机构，获取专业的诊疗意见</p>
+        <p class="inst-desc">查询已授权的合作医疗机构，获取专业的诊疗意见</p>
 
         <div class="inst-form">
           <el-row :gutter="12">
@@ -323,7 +319,7 @@ const quickActions = [
               <div class="inst-header">
                 <span class="inst-name">{{ inst.institutionName }}</span>
                 <el-tag :type="inst.isAuthorized ? 'success' : 'danger'" size="small">
-                  {{ inst.isAuthorized ? '✓ 官方授权' : '✗ 未授权' }}
+                  {{ inst.isAuthorized ? '✓ 已授权' : '✗ 未授权' }}
                 </el-tag>
               </div>
               <div class="inst-meta">
@@ -353,8 +349,8 @@ const quickActions = [
         <!-- 资质说明 -->
         <div class="qualification-notice">
           <h4>📋 资质完备 安全至上</h4>
-          <p>天新福产品属于第三类医疗器械，其生产与运输全过程均严格遵守医疗器械相关管理规范。该产品仅限于经国家正式批准的医疗机构内，由具备相应资质的医师进行操作。</p>
-          <p>建议您前往品牌官方授权的合作机构进行咨询，以获取专业的诊疗意见。</p>
+          <p>胶原产品属于第三类医疗器械，其生产与运输全过程均严格遵守医疗器械相关管理规范。该产品仅限于经国家正式批准的医疗机构内，由具备相应资质的医师进行操作。</p>
+          <p>建议您前往已授权的合作机构进行咨询，以获取专业的诊疗意见。</p>
         </div>
       </div>
     </div>
