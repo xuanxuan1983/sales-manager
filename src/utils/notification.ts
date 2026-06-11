@@ -77,7 +77,7 @@ ${event.eventDescription}
 
 请立即启动调查程序，并在24小时内上报国家药监局。
 
-—— DermAnalytics 不良事件监测系统
+—— 医美销售追溯系统 · 不良事件监测
   `.trim()
 
   return { subject, content }
@@ -103,7 +103,7 @@ ${events.map((e, i) => `${i + 1}. ${e.reportNo} | ${e.eventType} | ${e.severity}
 
 建议立即暂停该批次产品销售，启动召回评估。
 
-—— DermAnalytics 不良事件监测系统
+—— 医美销售追溯系统 · 不良事件监测
   `.trim()
 
   return sendNotification({
