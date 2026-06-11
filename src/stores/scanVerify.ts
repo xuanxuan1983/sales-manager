@@ -22,29 +22,29 @@ const PRODUCT_DB: Record<string, {
 }> = {
   '06973894820001': {
     id: 'P001',
-    name: '天新福胶原蛋白植入剂',
+    name: '胶原蛋白植入剂',
     spec: '1ml/支',
-    manufacturer: '天新福（北京）医疗器材股份有限公司',
+    manufacturer: '示例医疗器械生产企业',
     udiDi: '06973894820001'
   },
   '06973894820002': {
     id: 'P002',
-    name: '天新福胶原蛋白植入剂',
+    name: '胶原蛋白植入剂',
     spec: '2ml/支',
-    manufacturer: '天新福（北京）医疗器材股份有限公司',
+    manufacturer: '示例医疗器械生产企业',
     udiDi: '06973894820002'
   },
   '06973894820003': {
     id: 'P003',
-    name: '天新福胶原蛋白水光',
+    name: '胶原蛋白水光',
     spec: '5ml/支',
-    manufacturer: '天新福（北京）医疗器材股份有限公司',
+    manufacturer: '示例医疗器械生产企业',
     udiDi: '06973894820003'
   }
 }
 
 // 已召回批次
-const RECALLED_BATCHES = new Set(['TXF-20250101-R'])
+const RECALLED_BATCHES = new Set(['GEN-20250101-R'])
 
 export const useScanVerifyStore = defineStore('scanVerify', () => {
   // ========== State ==========

@@ -246,7 +246,7 @@ const activeTab = ref<'trace' | 'alert' | 'batch'>('alert')
           </el-table-column>
           <el-table-column prop="productId" label="产品" width="200">
             <template #default="{ row }">
-              {{ row.productId === 'P001' ? '天新福胶原蛋白植入剂 1ml' : '天新福胶原蛋白植入剂 0.5ml' }}
+              {{ row.productId === 'P001' ? '胶原蛋白植入剂 1ml' : '胶原蛋白植入剂 0.5ml' }}
             </template>
           </el-table-column>
           <el-table-column label="库存" width="140">

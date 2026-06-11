@@ -53,7 +53,7 @@ const mockSalespeople: Salesperson[] = [
 const mockProducts: Product[] = [
   { 
     id: 'p1', 
-    name: '天新福胶原蛋白填充剂-1ml', 
+    name: '胶原蛋白填充剂-1ml',
     category: 'collagen', 
     unit: 'unit', 
     unitsPerBox: 10, 
@@ -65,7 +65,7 @@ const mockProducts: Product[] = [
   },
   { 
     id: 'p2', 
-    name: '天新福胶原蛋白填充剂-2ml', 
+    name: '胶原蛋白填充剂-2ml',
     category: 'collagen', 
     unit: 'unit', 
     unitsPerBox: 10, 
@@ -77,7 +77,7 @@ const mockProducts: Product[] = [
   },
   { 
     id: 'p3', 
-    name: '天新福胶原蛋白水光-5ml', 
+    name: '胶原蛋白水光-5ml',
     category: 'collagen', 
     unit: 'unit', 
     unitsPerBox: 5, 

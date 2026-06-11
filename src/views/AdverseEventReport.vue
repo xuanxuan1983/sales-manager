@@ -119,7 +119,7 @@ const handleSubmit = async () => {
         patientAge: reportForm.value.patientAge,
         patientGender: reportForm.value.patientGender,
         productId: 'P001',
-        productName: '天新福胶原蛋白植入剂 1ml',
+        productName: '胶原蛋白植入剂 1ml',
         udiDi: '6973894820001',
         udiPi: reportForm.value.udiPi || '',
         batchNo: reportForm.value.batchNo || '',

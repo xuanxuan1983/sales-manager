@@ -9,7 +9,7 @@ export const useUDITraceStore = defineStore('udiTrace', () => {
         {
             id: 'B001',
             productId: 'P001',
-            batchNo: 'TXF-20260115-A',
+            batchNo: 'GEN-20260115-A',
             productionDate: '2026-01-15',
             expiryDate: '2028-01-14',
             quantity: 500,
@@ -21,7 +21,7 @@ export const useUDITraceStore = defineStore('udiTrace', () => {
         {
             id: 'B002',
             productId: 'P001',
-            batchNo: 'TXF-20260320-B',
+            batchNo: 'GEN-20260320-B',
             productionDate: '2026-03-20',
             expiryDate: '2027-09-19',
             quantity: 300,
@@ -33,7 +33,7 @@ export const useUDITraceStore = defineStore('udiTrace', () => {
         {
             id: 'B003',
             productId: 'P002',
-            batchNo: 'TXF-20251010-C',
+            batchNo: 'GEN-20251010-C',
             productionDate: '2025-10-10',
             expiryDate: '2026-07-09',
             quantity: 200,
@@ -48,12 +48,12 @@ export const useUDITraceStore = defineStore('udiTrace', () => {
         {
             id: 'T001',
             udiDi: '6973894820001',
-            udiPi: 'TXF-20260115-A-001',
-            batchNo: 'TXF-20260115-A',
+            udiPi: 'GEN-20260115-A-001',
+            batchNo: 'GEN-20260115-A',
             serialNo: '001',
             productId: 'P001',
-            productName: '天新福胶原蛋白植入剂 1ml',
-            from: '天新福工厂仓库',
+            productName: '胶原蛋白植入剂 1ml',
+            from: '示例工厂仓库',
             to: '北京美莱医疗美容医院',
             toType: 'hospital',
             operation: 'outbound',
@@ -65,12 +65,12 @@ export const useUDITraceStore = defineStore('udiTrace', () => {
         {
             id: 'T002',
             udiDi: '6973894820001',
-            udiPi: 'TXF-20260115-A-002',
-            batchNo: 'TXF-20260115-A',
+            udiPi: 'GEN-20260115-A-002',
+            batchNo: 'GEN-20260115-A',
             serialNo: '002',
             productId: 'P001',
-            productName: '天新福胶原蛋白植入剂 1ml',
-            from: '天新福工厂仓库',
+            productName: '胶原蛋白植入剂 1ml',
+            from: '示例工厂仓库',
             to: '上海华美医疗美容门诊部',
             toType: 'clinic',
             operation: 'outbound',
@@ -185,7 +185,7 @@ export const useUDITraceStore = defineStore('udiTrace', () => {
     /** 扫码入库（预留接口） */
     const scanInbound = async (dataMatrixContent: string) => {
         // TODO: 解析 DataMatrix 内容，提取 UDI-DI + UDI-PI
-        // GS1 格式: (01)6973894820001(11)260115(17)280114(10)TXF-A(21)001
+        // GS1 格式: (01)6973894820001(11)260115(17)280114(10)GEN-A(21)001
         console.log('Scanning:', dataMatrixContent)
         return null
     }
@@ -193,8 +193,8 @@ export const useUDITraceStore = defineStore('udiTrace', () => {
     // Helper
     function getProductName(productId: string): string {
         const names: Record<string, string> = {
-            P001: '天新福胶原蛋白植入剂 1ml',
-            P002: '天新福胶原蛋白植入剂 0.5ml'
+            P001: '胶原蛋白植入剂 1ml',
+            P002: '胶原蛋白植入剂 0.5ml'
         }
         return names[productId] || '未知产品'
     }

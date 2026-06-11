@@ -29,14 +29,14 @@ const GRADIENT_POOL = [
 
 /**
  * 生成防伪令牌
- * 格式: TXF-YYYYMMDD-XXXX (X为随机字母数字)
+ * 格式: GEN-YYYYMMDD-XXXX (X为随机字母数字)
  */
 function generateToken(_productId: string, timestamp: Date): string {
   const dateStr = timestamp.toISOString().slice(0, 10).replace(/-/g, '')
   const random = Array.from({ length: 4 }, () =>
     'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]
   ).join('')
-  return `TXF-${dateStr}-${random}`
+  return `GEN-${dateStr}-${random}`
 }
 
 /**
@@ -158,9 +158,9 @@ export function generateSealSVG(token: string, gradient: string): string {
       </defs>
       <circle cx="60" cy="60" r="55" fill="none" stroke="url(#sealGrad)" stroke-width="3" stroke-dasharray="8 4"/>
       <circle cx="60" cy="60" r="48" fill="none" stroke="url(#sealGrad)" stroke-width="1" opacity="0.5"/>
-      <text x="60" y="45" text-anchor="middle" fill="${colors[0]}" font-size="11" font-weight="bold">天新福正品</text>
+      <text x="60" y="45" text-anchor="middle" fill="${colors[0]}" font-size="11" font-weight="bold">正品验证</text>
       <text x="60" y="65" text-anchor="middle" fill="${colors[0]}" font-size="9" font-family="monospace">${token.slice(-8)}</text>
-      <text x="60" y="82" text-anchor="middle" fill="${colors[0]}" font-size="8" opacity="0.7">官方验证</text>
+      <text x="60" y="82" text-anchor="middle" fill="${colors[0]}" font-size="8" opacity="0.7">平台验证</text>
     </svg>
   `.trim()
 }

@@ -211,7 +211,7 @@ server.post('/api/institutions/verify', (req, res) => {
   res.json(success({
     isAuthorized,
     institution,
-    message: isAuthorized ? '该机构为官方授权机构' : '该机构未获得授权'
+    message: isAuthorized ? '该机构为已授权机构' : '该机构未获得授权'
   }))
 })
 
